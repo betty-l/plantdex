@@ -90,3 +90,30 @@ create policy "Écriture publique (V1 sans auth)"
   using (true)
   with check (true);
 
+-- Policies Storage : sans elles, un bucket "Public" autorise la LECTURE anonyme
+-- mais pas forcément l'ÉCRITURE anonyme (upload). Nécessaire pour species-photo et plant-photos.
+drop policy if exists "Lecture publique species-photo" on storage.objects;
+create policy "Lecture publique species-photo"
+  on storage.objects for select
+  using (bucket_id = 'species-photo');
+
+drop policy if exists "Upload public species-photo (V1 sans auth)" on storage.objects;
+create policy "Upload public species-photo (V1 sans auth)"
+  on storage.objects for insert
+  with check (bucket_id = 'species-photo');
+
+drop policy if exists "Update public species-photo (V1 sans auth)" on storage.objects;
+create policy "Update public species-photo (V1 sans auth)"
+  on storage.objects for update
+  using (bucket_id = 'species-photo');
+
+drop policy if exists "Lecture publique plant-photos" on storage.objects;
+create policy "Lecture publique plant-photos"
+  on storage.objects for select
+  using (bucket_id = 'plant-photos');
+
+drop policy if exists "Upload public plant-photos (V1 sans auth)" on storage.objects;
+create policy "Upload public plant-photos (V1 sans auth)"
+  on storage.objects for insert
+  with check (bucket_id = 'plant-photos');
+
