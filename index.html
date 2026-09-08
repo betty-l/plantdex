@@ -283,6 +283,7 @@
     height:120px; display:flex; align-items:center; justify-content:center;
     font-size:70px; border:2px dashed var(--pd-border); margin-bottom:14px;
   }
+  .panel-art img{ max-height:100%; max-width:100%; object-fit:contain; }
   .tabs{ display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
   .tab-btn{
     font-family:'Space Mono',monospace; font-size:11px;
@@ -1085,19 +1086,28 @@
     };
   }
 
-  var speciesPhotos = {}; // species_id -> photo_url (bibliothèque, issues de Perenual)
+  var SPECIES_BUCKET_URL = SUPABASE_URL + "/storage/v1/object/public/species-photo/";
 
-  async function loadSpeciesPhotos(){
-    try{
-      var res = await fetch(SUPABASE_URL + "/rest/v1/species_photos?select=species_id,photo_url", { headers: SB_HEADERS });
-      if(!res.ok) throw new Error("HTTP " + res.status);
-      var rows = await res.json();
-      rows.forEach(function(r){ speciesPhotos[r.species_id] = r.photo_url; });
-      renderGrid();
-      if(activeId) renderPanelBody();
-    }catch(e){
-      console.error("Photos de bibliothèque indisponibles :", e);
-    }
+  // Construit une <img> qui essaie photo.png puis photo.jpg dans le bucket,
+  // et retombe sur l'emoji si aucune des deux n'existe.
+  function createArtNode(sp, personalPhotoUrl){
+    var candidates = [];
+    if(personalPhotoUrl) candidates.push(personalPhotoUrl);
+    candidates.push(SPECIES_BUCKET_URL + sp.id + ".png");
+    candidates.push(SPECIES_BUCKET_URL + sp.id + ".jpg");
+
+    var img = document.createElement("img");
+    img.alt = "Photo de " + sp.common;
+    var idx = 0;
+    img.onerror = function(){
+      if(idx < candidates.length){
+        img.src = candidates[idx++];
+      } else if(img.parentNode){
+        img.parentNode.replaceChild(document.createTextNode(sp.emoji), img);
+      }
+    };
+    img.src = candidates[idx++];
+    return img;
   }
 
   async function syncFromSupabase(){
@@ -1348,9 +1358,8 @@
     list.forEach(function(sp){
       var entry = collection[sp.id];
       var captured = entry && entry.captured;
-      var hasPhoto = !!(captured && entry.photo) || !!speciesPhotos[sp.id];
-      var photoSrc = (captured && entry.photo) ? entry.photo : speciesPhotos[sp.id];
-      var gradient = (hasPhoto && entry.gradient) ?
+      var personalPhotoUrl = (captured && entry.photo) ? entry.photo : null;
+      var gradient = (personalPhotoUrl && entry.gradient) ?
         "linear-gradient(180deg,"+entry.gradient.top+" 0%,"+entry.gradient.bottom+" 100%)" :
         (CARD_GRADIENTS[sp.id] || DEFAULT_GRADIENT);
 
@@ -1360,14 +1369,14 @@
       card.setAttribute("aria-label", sp.common);
 
       card.innerHTML =
-        '<div class="card-bg" style="background:' + gradient + ';">' +
-          (hasPhoto ? '<img src="'+photoSrc+'" alt="Photo de '+sp.common+'">' : sp.emoji) +
-        '</div>' +
+        '<div class="card-bg" style="background:' + gradient + ';"></div>' +
         '<span class="card-name">'+ sp.common +'</span>' +
         '<div class="card-footer">' +
           '<span class="card-latin">'+ sp.latin +'</span>' +
           '<span class="card-type">'+ sp.type +'</span>' +
         '</div>';
+
+      card.querySelector(".card-bg").appendChild(createArtNode(sp, personalPhotoUrl));
 
       card.addEventListener("click", function(){ openPanel(sp.id); });
       grid.appendChild(card);
@@ -1523,10 +1532,9 @@
     var entry = collection[activeId];
     var captured = entry && entry.captured;
 
-    var panelPhoto = (captured && entry.photo) ? entry.photo : speciesPhotos[sp.id];
-    var artSrc = panelPhoto ? '<img src="'+panelPhoto+'" alt="Photo de '+sp.common+'" style="max-height:100%;max-width:100%;">' : sp.emoji;
+    var personalPhotoUrl = (captured && entry.photo) ? entry.photo : null;
 
-    var html = '<div class="panel-art">' + artSrc + '</div>';
+    var html = '<div class="panel-art"></div>';
     html += '<span class="panel-type-chip">' + sp.type + '</span>';
     html += '<div class="history-box">' + sp.history + '</div>';
 
@@ -1559,6 +1567,7 @@
     }
 
     panelBody.innerHTML = html;
+    panelBody.querySelector(".panel-art").appendChild(createArtNode(sp, personalPhotoUrl));
 
     // wire dynamic buttons
     var deleteBtn = document.getElementById("deleteBtn");
@@ -1742,7 +1751,6 @@
   renderWordmark();
   renderGrid();
   syncFromSupabase();
-  loadSpeciesPhotos();
 })();
 </script>
 </body>
