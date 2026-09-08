@@ -348,6 +348,24 @@
   }
   .photo-drop img{ max-width:100%; max-height:140px; display:block; margin:0 auto; }
 
+  .add-preview{
+    margin-top:10px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    border:2px solid var(--pd-border);
+    border-radius:10px;
+    padding:8px 10px;
+  }
+  .add-preview .add-preview-icon{
+    width:44px; height:44px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px; flex:0 0 auto;
+  }
+  .add-preview .add-preview-text{ font-size:11px; line-height:1.5; }
+  .add-preview .add-preview-text b{ display:block; font-size:12px; }
+  .add-preview .add-preview-text i{ color:var(--pd-gray); }
+
   /* ---------- engaging fiche content ---------- */
   .panel-type-chip{
     display:inline-block; font-size:9px; background:var(--pd-green); color:var(--pd-cream);
@@ -473,7 +491,8 @@
           <label class="field-label" for="addName">Nom de la plante</label>
           <input class="field-input" id="addName" list="knownNames" placeholder="Ex : Monstera, Pothos, Ma fougère du salon…" autocomplete="off">
           <datalist id="knownNames"></datalist>
-          <span class="field-hint">Si le nom correspond à une espèce connue, sa fiche complète (arrosage, lumière, terreau…) sera liée automatiquement.</span>
+          <span class="field-hint">Choisis une plante dans la liste pour récupérer directement son icône et sa fiche complète (arrosage, lumière, terreau…).</span>
+          <div class="add-preview" id="addPreview" style="display:none;"></div>
         </div>
 
         <div class="field-group">
@@ -672,10 +691,244 @@
       soilMix:[{label:"Terreau universel",parts:4},{label:"Perlite",parts:1}],
       humidity:"Humidité ambiante normale suffisante.",
       toxicity:"Toxique pour chats et chiens en cas d'ingestion."
+    },
+    {
+      id:"boston_fern", num:"013", common:"Fougère de Boston", latin:"Nephrolepis exaltata",
+      type:"Fougère", emoji:"🌿",
+      stats:{hp:70, growth:65, tough:70},
+      history:"Originaire des forêts humides tropicales d'Amérique et d'Asie, cette fougère pousse naturellement en épiphyte sur les troncs ou dans le sol riche des sous-bois. Popularisée à l'époque victorienne pour orner les intérieurs, elle reste appréciée pour son feuillage retombant et dense.",
+      watering:"Arrosage tous les 4 à 6 jours, terreau maintenu constamment humide sans détremper.",
+      light:"Lumière indirecte moyenne à vive, jamais de soleil direct qui brûle les frondes.",
+      temperature:"16 à 24°C, sensible aux courants d'air sec.",
+      soil:"Terreau léger et riche en matière organique, retenant bien l'humidité.",
+      soilMix:[{"label":"Terreau universel","parts":2},{"label":"Fibre de coco","parts":1},{"label":"Perlite","parts":1}],
+      humidity:"Humidité élevée indispensable (60%+) ; brumisation régulière ou coupelle de billes d'argile humides.",
+      toxicity:"Non toxique pour les chats et les chiens."
+    },
+    {
+      id:"yucca", num:"014", common:"Yucca", latin:"Yucca elephantipes",
+      type:"Arbustif", emoji:"🌵",
+      stats:{hp:70, growth:65, tough:70},
+      history:"Originaire des régions arides du Mexique et d'Amérique centrale, le yucca stocke l'eau dans son tronc renflé pour survivre aux longues sécheresses. Sa silhouette graphique en a fait une plante d'intérieur prisée dès les années 1980.",
+      watering:"Arrosage toutes les 2 semaines, laisser sécher complètement le terreau entre deux arrosages.",
+      light:"Lumière vive, plusieurs heures de soleil direct bien tolérées.",
+      temperature:"15 à 27°C.",
+      soil:"Terreau très drainant type cactus/succulentes.",
+      soilMix:[{"label":"Terreau cactus/succulentes","parts":3},{"label":"Sable grossier","parts":1}],
+      humidity:"Faible humidité tolérée sans problème.",
+      toxicity:"Toxique pour chats et chiens en cas d'ingestion."
+    },
+    {
+      id:"areca", num:"015", common:"Palmier Areca", latin:"Dypsis lutescens",
+      type:"Palmier", emoji:"🌴",
+      stats:{hp:70, growth:65, tough:70},
+      history:"Originaire de Madagascar, ce palmier pousse en touffes denses dans les zones tropicales humides. Très utilisé en intérieur pour son feuillage arqué et sa réputation de purificateur d'air.",
+      watering:"Arrosage tous les 6 à 8 jours, terreau légèrement humide en permanence.",
+      light:"Lumière vive indirecte, tolère la mi-ombre.",
+      temperature:"18 à 24°C, sensible aux courants d'air froid.",
+      soil:"Terreau riche et bien drainant.",
+      soilMix:[{"label":"Terreau universel","parts":3},{"label":"Perlite","parts":1}],
+      humidity:"Humidité élevée appréciée ; brumisation régulière recommandée.",
+      toxicity:"Non toxique pour les animaux domestiques."
+    },
+    {
+      id:"pilea", num:"016", common:"Pilea", latin:"Pilea peperomioides",
+      type:"Feuillage", emoji:"🪙",
+      stats:{hp:70, growth:65, tough:70},
+      history:"Originaire des montagnes du Yunnan en Chine, cette plante s'est répandue en Europe du Nord dans les années 1970 grâce aux boutures échangées entre particuliers, ce qui lui vaut son surnom de « plante à monnaie chinoise ». Ses feuilles rondes et plates rappellent des pièces.",
+      watering:"Arrosage tous les 6 à 8 jours, laisser sécher le terreau en surface entre deux arrosages.",
+      light:"Lumière vive indirecte ; tourner le pot régulièrement pour une croissance équilibrée.",
+      temperature:"16 à 24°C.",
+      soil:"Terreau universel bien drainant.",
+      soilMix:[{"label":"Terreau universel","parts":4},{"label":"Perlite","parts":1}],
+      humidity:"Humidité ambiante normale d'un intérieur.",
+      toxicity:"Non toxique pour les animaux domestiques."
+    },
+    {
+      id:"anthurium", num:"017", common:"Anthurium", latin:"Anthurium andraeanum",
+      type:"Feuillage fleuri", emoji:"🌺",
+      stats:{hp:70, growth:65, tough:70},
+      history:"Originaire des forêts tropicales de Colombie et d'Équateur, cet épiphyte produit une spathe cireuse et brillante toute l'année en intérieur. Il pousse naturellement accroché aux arbres, ses racines aériennes captant l'humidité ambiante.",
+      watering:"Arrosage tous les 6 à 7 jours, terreau légèrement humide sans excès.",
+      light:"Lumière vive et filtrée, jamais de soleil direct.",
+      temperature:"18 à 27°C.",
+      soil:"Terreau léger et aéré, proche d'un substrat pour orchidées.",
+      soilMix:[{"label":"Terreau universel","parts":2},{"label":"Écorce de pin","parts":1},{"label":"Perlite","parts":1}],
+      humidity:"Humidité élevée requise (60%+).",
+      toxicity:"Toxique pour chats, chiens et humains en cas d'ingestion."
+    },
+    {
+      id:"orchidee", num:"018", common:"Orchidée papillon", latin:"Phalaenopsis",
+      type:"Fleurie", emoji:"🌸",
+      stats:{hp:70, growth:65, tough:70},
+      history:"Originaire des forêts tropicales d'Asie du Sud-Est, cette orchidée épiphyte pousse accrochée aux branches, ses racines aériennes absorbant l'humidité de l'air. Sa floraison spectaculaire et durable en a fait l'une des plantes fleuries les plus vendues au monde.",
+      watering:"Arrosage tous les 7 à 10 jours par trempage bref, laisser les racines sécher entre deux bains.",
+      light:"Lumière vive et filtrée, jamais de soleil direct.",
+      temperature:"18 à 26°C.",
+      soil:"Substrat spécial orchidées (écorce), pas de terreau classique.",
+      soilMix:[{"label":"Écorce de pin","parts":3},{"label":"Sphaigne","parts":1}],
+      humidity:"Humidité élevée appréciée (50-70%).",
+      toxicity:"Non toxique pour les animaux domestiques."
+    },
+    {
+      id:"fittonia", num:"019", common:"Fittonia", latin:"Fittonia albivenis",
+      type:"Feuillage", emoji:"🍃",
+      stats:{hp:70, growth:65, tough:70},
+      history:"Originaire des sous-bois humides de la forêt amazonienne au Pérou, cette petite plante tapissante se distingue par ses feuilles nervurées de blanc ou de rose. Ses feuilles s'affaissent visiblement dès qu'elle manque d'eau, un signal facile à repérer.",
+      watering:"Arrosage tous les 4 à 5 jours, terreau maintenu constamment humide.",
+      light:"Lumière indirecte moyenne, jamais de soleil direct.",
+      temperature:"18 à 26°C.",
+      soil:"Terreau léger, riche en matière organique.",
+      soilMix:[{"label":"Terreau universel","parts":2},{"label":"Fibre de coco","parts":1}],
+      humidity:"Humidité très élevée requise ; se plaît en terrarium ou sous cloche.",
+      toxicity:"Non toxique pour les animaux domestiques."
+    },
+    {
+      id:"peperomia", num:"020", common:"Peperomia", latin:"Peperomia obtusifolia",
+      type:"Feuillage", emoji:"🍀",
+      stats:{hp:70, growth:65, tough:70},
+      history:"Originaire des forêts tropicales d'Amérique centrale et du Sud, cette plante pousse souvent en épiphyte sur les troncs. Ses feuilles charnues stockent l'eau, ce qui la rend étonnamment tolérante à l'oubli pour une plante de sous-bois.",
+      watering:"Arrosage tous les 10 à 12 jours, laisser bien sécher le terreau entre deux arrosages.",
+      light:"Lumière moyenne à vive indirecte.",
+      temperature:"18 à 26°C.",
+      soil:"Terreau léger et bien drainant.",
+      soilMix:[{"label":"Terreau universel","parts":3},{"label":"Perlite","parts":1}],
+      humidity:"Humidité ambiante normale suffisante.",
+      toxicity:"Non toxique pour les animaux domestiques."
+    },
+    {
+      id:"tradescantia", num:"021", common:"Misère", latin:"Tradescantia zebrina",
+      type:"Retombante", emoji:"🍇",
+      stats:{hp:70, growth:65, tough:70},
+      history:"Originaire du Mexique et d'Amérique centrale, cette plante rampante doit son nom aux rayures argentées et violettes de son feuillage. Sa croissance très rapide et sa facilité de bouturage en ont fait une plante de partage entre jardiniers depuis des générations.",
+      watering:"Arrosage tous les 5 à 7 jours, terreau légèrement humide en permanence.",
+      light:"Lumière vive indirecte ; une lumière insuffisante ternit les couleurs du feuillage.",
+      temperature:"15 à 24°C.",
+      soil:"Terreau universel bien drainant.",
+      soilMix:[{"label":"Terreau universel","parts":4},{"label":"Perlite","parts":1}],
+      humidity:"Humidité ambiante normale suffisante.",
+      toxicity:"Légèrement toxique et irritante pour la peau, à tenir hors de portée des animaux."
+    },
+    {
+      id:"hoya", num:"022", common:"Fleur de porcelaine", latin:"Hoya carnosa",
+      type:"Grimpante", emoji:"🌸",
+      stats:{hp:70, growth:65, tough:70},
+      history:"Originaire d'Asie de l'Est et d'Australie, cette plante grimpante produit des ombelles de fleurs étoilées à l'aspect cireux, d'où son nom. Elle peut vivre plusieurs décennies et refleurit chaque année sur les mêmes pédoncules, qu'il ne faut donc jamais couper.",
+      watering:"Arrosage tous les 10 à 14 jours, laisser bien sécher le terreau entre deux arrosages.",
+      light:"Lumière vive indirecte, quelques heures de soleil doux favorisent la floraison.",
+      temperature:"16 à 26°C.",
+      soil:"Terreau léger et très drainant.",
+      soilMix:[{"label":"Terreau universel","parts":2},{"label":"Perlite","parts":1},{"label":"Écorce de pin","parts":1}],
+      humidity:"Humidité ambiante moyenne appréciée.",
+      toxicity:"Non toxique, mais la sève peut irriter légèrement la peau."
+    },
+    {
+      id:"ficus_elastica", num:"023", common:"Caoutchouc", latin:"Ficus elastica",
+      type:"Arbustif", emoji:"🌳",
+      stats:{hp:70, growth:65, tough:70},
+      history:"Originaire des forêts tropicales d'Asie du Sud, cet arbre peut dépasser 30 mètres à l'état sauvage. Sa sève laiteuse fut historiquement utilisée dans la production de caoutchouc naturel, d'où son nom commun.",
+      watering:"Arrosage tous les 8 à 10 jours, laisser sécher le terreau en surface.",
+      light:"Lumière vive indirecte, tolère la mi-ombre.",
+      temperature:"16 à 27°C.",
+      soil:"Terreau riche et bien drainant.",
+      soilMix:[{"label":"Terreau universel","parts":3},{"label":"Perlite","parts":1}],
+      humidity:"Humidité ambiante normale ; essuyer les grandes feuilles régulièrement.",
+      toxicity:"Sève irritante pour la peau, toxique pour les animaux si ingérée."
+    },
+    {
+      id:"schefflera", num:"024", common:"Schefflera", latin:"Schefflera arboricola",
+      type:"Arbustif", emoji:"🌴",
+      stats:{hp:70, growth:65, tough:70},
+      history:"Originaire de Taïwan et du sud de la Chine, cet arbuste doit son nom commun d'« arbre parapluie » à ses folioles disposées en éventail. Facile à tailler, il forme rapidement une silhouette buissonnante en intérieur.",
+      watering:"Arrosage tous les 7 à 9 jours, laisser sécher le terreau en surface.",
+      light:"Lumière vive indirecte.",
+      temperature:"16 à 24°C.",
+      soil:"Terreau universel bien drainant.",
+      soilMix:[{"label":"Terreau universel","parts":3},{"label":"Perlite","parts":1}],
+      humidity:"Humidité ambiante normale suffisante.",
+      toxicity:"Toxique pour chats et chiens en cas d'ingestion."
+    },
+    {
+      id:"alocasia", num:"025", common:"Oreille d'éléphant", latin:"Alocasia amazonica",
+      type:"Feuillage", emoji:"🍃",
+      stats:{hp:70, growth:65, tough:70},
+      history:"Issue de croisements horticoles à partir d'espèces originaires d'Asie du Sud-Est, cette plante est réputée pour ses larges feuilles sculpturales aux nervures marquées. Elle marque souvent une pause de croissance en hiver, ce qui est normal.",
+      watering:"Arrosage tous les 5 à 7 jours, terreau légèrement humide sans excès.",
+      light:"Lumière vive et filtrée, jamais de soleil direct.",
+      temperature:"18 à 27°C, sensible en dessous de 15°C.",
+      soil:"Terreau léger et bien drainant, riche en matière organique.",
+      soilMix:[{"label":"Terreau universel","parts":2},{"label":"Perlite","parts":1},{"label":"Écorce de pin","parts":1}],
+      humidity:"Humidité élevée indispensable (60%+).",
+      toxicity:"Toxique pour chats, chiens et humains en cas d'ingestion."
+    },
+    {
+      id:"cyclamen", num:"026", common:"Cyclamen", latin:"Cyclamen persicum",
+      type:"Fleurie", emoji:"🌸",
+      stats:{hp:70, growth:65, tough:70},
+      history:"Originaire du bassin méditerranéen oriental, ce cyclamen pousse naturellement dans les sous-bois rocailleux. Sa floraison hivernale généreuse en fait une plante fleurie classique des mois froids, contrairement à la plupart des plantes d'intérieur.",
+      watering:"Arrosage tous les 5 à 6 jours par le dessous (soucoupe), en évitant de mouiller le tubercule.",
+      light:"Lumière vive mais fraîche, près d'une fenêtre non surchauffée.",
+      temperature:"12 à 18°C ; dépérit rapidement au-delà de 20°C.",
+      soil:"Terreau léger et bien drainant.",
+      soilMix:[{"label":"Terreau universel","parts":3},{"label":"Perlite","parts":1}],
+      humidity:"Humidité ambiante moyenne.",
+      toxicity:"Toxique pour chats et chiens, notamment le tubercule."
+    },
+    {
+      id:"begonia", num:"027", common:"Bégonia rex", latin:"Begonia rex",
+      type:"Feuillage", emoji:"🍁",
+      stats:{hp:70, growth:65, tough:70},
+      history:"Issu de croisements horticoles à partir d'espèces originaires d'Inde et d'Asie du Sud-Est, ce bégonia est cultivé uniquement pour son feuillage aux motifs et couleurs spectaculaires, ses fleurs étant discrètes et souvent retirées.",
+      watering:"Arrosage tous les 6 à 7 jours, terreau légèrement humide sans détremper.",
+      light:"Lumière vive indirecte, jamais de soleil direct.",
+      temperature:"18 à 24°C.",
+      soil:"Terreau léger, riche en matière organique.",
+      soilMix:[{"label":"Terreau universel","parts":2},{"label":"Fibre de coco","parts":1},{"label":"Perlite","parts":1}],
+      humidity:"Humidité élevée appréciée.",
+      toxicity:"Toxique pour chats et chiens en cas d'ingestion."
+    },
+    {
+      id:"kalanchoe", num:"028", common:"Kalanchoé", latin:"Kalanchoe blossfeldiana",
+      type:"Succulente", emoji:"🌼",
+      stats:{hp:70, growth:65, tough:70},
+      history:"Originaire de Madagascar, cette succulente stocke l'eau dans ses feuilles charnues et produit des bouquets de petites fleurs colorées très durables. Sa floraison est déclenchée par la longueur des nuits, comme le poinsettia.",
+      watering:"Arrosage toutes les 10 à 12 jours, laisser sécher le terreau entre deux arrosages.",
+      light:"Lumière vive, quelques heures de soleil direct bien tolérées.",
+      temperature:"15 à 24°C.",
+      soil:"Terreau pour cactus/succulentes, bien drainant.",
+      soilMix:[{"label":"Terreau cactus/succulentes","parts":3},{"label":"Sable grossier","parts":1}],
+      humidity:"Faible humidité tolérée.",
+      toxicity:"Toxique pour chats et chiens en cas d'ingestion."
+    },
+    {
+      id:"schlumbergera", num:"029", common:"Cactus de Noël", latin:"Schlumbergera truncata",
+      type:"Succulente", emoji:"🌵",
+      stats:{hp:70, growth:65, tough:70},
+      history:"Originaire des forêts tropicales humides du Brésil, ce cactus pousse en épiphyte sur les arbres, très différent des cactus du désert. Sa floraison spectaculaire en fin d'année lui vaut son nom commun.",
+      watering:"Arrosage tous les 8 à 10 jours, terreau légèrement humide sans excès pendant la croissance.",
+      light:"Lumière vive et filtrée, jamais de soleil direct brûlant.",
+      temperature:"15 à 24°C.",
+      soil:"Terreau léger et drainant, différent d'un terreau à cactus classique.",
+      soilMix:[{"label":"Terreau universel","parts":2},{"label":"Perlite","parts":1},{"label":"Écorce de pin","parts":1}],
+      humidity:"Humidité ambiante moyenne à élevée.",
+      toxicity:"Non toxique pour les animaux domestiques."
+    },
+    {
+      id:"echeveria", num:"030", common:"Echeveria", latin:"Echeveria elegans",
+      type:"Succulente", emoji:"🌵",
+      stats:{hp:70, growth:65, tough:70},
+      history:"Originaire des zones arides et rocailleuses du Mexique, cette succulente forme une rosette compacte de feuilles charnues qui stockent l'eau. Sa forme géométrique en fait l'une des succulentes les plus photographiées et collectionnées.",
+      watering:"Arrosage toutes les 2 à 3 semaines, laisser sécher complètement le terreau.",
+      light:"Lumière vive, plusieurs heures de soleil direct favorisent des couleurs intenses.",
+      temperature:"15 à 27°C.",
+      soil:"Terreau pour cactus/succulentes, très drainant.",
+      soilMix:[{"label":"Terreau cactus/succulentes","parts":2},{"label":"Sable grossier","parts":1}],
+      humidity:"Faible humidité tolérée sans problème.",
+      toxicity:"Non toxique pour les animaux domestiques."
     }
   ];
 
-  var WATER_DAYS = {monstera:9, sansevieria:18, ficus:9, pothos:8, calathea:6, zz:18, chlorophytum:7, aloe:18, philodendron:8, crassula:14, spathiphyllum:6, dracaena:12};
+  var WATER_DAYS = {monstera:9, sansevieria:18, ficus:9, pothos:8, calathea:6, zz:18, chlorophytum:7, aloe:18, philodendron:8, crassula:14, spathiphyllum:6, dracaena:12, boston_fern:5, yucca:14, areca:7, pilea:7, anthurium:6, orchidee:8, fittonia:4, peperomia:11, tradescantia:6, hoya:12, ficus_elastica:9, schefflera:8, alocasia:6, cyclamen:5, begonia:6, kalanchoe:11, schlumbergera:9, echeveria:16};
 
   var STORE_KEY = "plantedex_collection_v1";
   var CUSTOM_KEY = "plantedex_custom_species_v1";
@@ -1033,7 +1286,25 @@
     philodendron: "linear-gradient(180deg,#6db052 0%,#1a3312 100%)",
     crassula:     "linear-gradient(180deg,#71b055 0%,#1c3410 100%)",
     spathiphyllum:"linear-gradient(180deg,#ada896 0%,#33312c 100%)",
-    dracaena:     "linear-gradient(180deg,#7fa060 0%,#23331a 100%)"
+    dracaena:     "linear-gradient(180deg,#7fa060 0%,#23331a 100%)",
+    boston_fern: "linear-gradient(180deg,#c47764 0%,#391b13 100%)",
+    yucca: "linear-gradient(180deg,#cf9859 0%,#392813 100%)",
+    areca: "linear-gradient(180deg,#c4b764 0%,#393413 100%)",
+    pilea: "linear-gradient(180deg,#b7cf59 0%,#323913 100%)",
+    anthurium: "linear-gradient(180deg,#91c464 0%,#253913 100%)",
+    orchidee: "linear-gradient(180deg,#69cf59 0%,#183913 100%)",
+    fittonia: "linear-gradient(180deg,#64c477 0%,#13391b 100%)",
+    peperomia: "linear-gradient(180deg,#59cf98 0%,#133928 100%)",
+    tradescantia: "linear-gradient(180deg,#64c4b7 0%,#133934 100%)",
+    hoya: "linear-gradient(180deg,#59b7cf 0%,#133239 100%)",
+    ficus_elastica: "linear-gradient(180deg,#6491c4 0%,#132539 100%)",
+    schefflera: "linear-gradient(180deg,#5969cf 0%,#131839 100%)",
+    alocasia: "linear-gradient(180deg,#7764c4 0%,#1b1339 100%)",
+    cyclamen: "linear-gradient(180deg,#9859cf 0%,#281339 100%)",
+    begonia: "linear-gradient(180deg,#b764c4 0%,#341339 100%)",
+    kalanchoe: "linear-gradient(180deg,#cf59b7 0%,#391332 100%)",
+    schlumbergera: "linear-gradient(180deg,#c46491 0%,#391325 100%)",
+    echeveria: "linear-gradient(180deg,#cf5969 0%,#391318 100%)"
   };
   var DEFAULT_GRADIENT = "linear-gradient(180deg,#a5a496 0%,#33322c 100%)";
 
@@ -1325,6 +1596,23 @@
     }).join("");
   }
 
+  var addNameInput = document.getElementById("addName");
+  var addPreviewEl = document.getElementById("addPreview");
+
+  function updateAddPreview(){
+    var sp = findMatchingSpecies(addNameInput.value);
+    if(!sp){
+      addPreviewEl.style.display = "none";
+      addPreviewEl.innerHTML = "";
+      return;
+    }
+    var gradient = CARD_GRADIENTS[sp.id] || DEFAULT_GRADIENT;
+    addPreviewEl.style.display = "flex";
+    addPreviewEl.innerHTML =
+      '<div class="add-preview-icon" style="background:'+gradient+';">'+sp.emoji+'</div>' +
+      '<div class="add-preview-text"><b>'+sp.common+'</b><i>'+sp.latin+'</i> — fiche complète liée automatiquement</div>';
+  }
+
   function openAddModal(){
     addForm.reset();
     formError.classList.remove("show");
@@ -1334,9 +1622,12 @@
     photoDropText.style.display = "inline";
     populateKnownNames();
     addOverlay.classList.add("open");
-    document.getElementById("addName").focus();
+    addNameInput.focus();
+    updateAddPreview();
   }
   function closeAddModal(){ addOverlay.classList.remove("open"); }
+
+  addNameInput.addEventListener("input", updateAddPreview);
 
   document.getElementById("openAddBtn").addEventListener("click", openAddModal);
   document.getElementById("closeAddPanel").addEventListener("click", closeAddModal);
