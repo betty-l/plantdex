@@ -66,3 +66,27 @@ create policy "Accès public en lecture/écriture (V1 sans auth)"
 
 -- ⚠️ Accès ouvert à tout le monde tant qu'il n'y a pas d'authentification.
 -- À restreindre avec des policies filtrées sur user_id = auth.uid() une fois Supabase Auth activé.
+
+-- Table séparée : photos réelles des espèces de la bibliothèque (issues de Perenual),
+-- indépendante de "plants" qui ne contient que les instances personnelles.
+create table if not exists species_photos (
+  species_id text primary key, -- correspond à l'id local (ex: "monstera")
+  photo_url text not null, -- URL publique dans le bucket Storage "species-photos"
+  perenual_id integer,
+  license text,
+  updated_at timestamptz not null default now()
+);
+
+alter table species_photos enable row level security;
+
+drop policy if exists "Lecture publique" on species_photos;
+create policy "Lecture publique"
+  on species_photos for select
+  using (true);
+
+drop policy if exists "Écriture publique (V1 sans auth)" on species_photos;
+create policy "Écriture publique (V1 sans auth)"
+  on species_photos for all
+  using (true)
+  with check (true);
+
