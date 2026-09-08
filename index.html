@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLANTEDEX — Bibliothèque de plantes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pd-green:      #2d5016;
+    --pd-green-dark: #1c3410;
+    --pd-yellow:     #ffd700;
+    --pd-ink:        #1a1a1a;
+    --pd-cream:      #f5f5f0;
+    --pd-card:       #ffffff;
+    --pd-gray:       #6b7280;
+    --pd-red:        #b3231c;
+    --pd-border:     var(--pd-ink);
+    --pd-shadow:     rgba(26,26,26,0.9);
+    --pd-hp:         #4caf50;
+    --pd-risk:       #e6b800;
+    --pd-danger:     #c0392b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --pd-cream:  #14210f;
+      --pd-card:   #1f3315;
+      --pd-ink:    #eef0e6;
+      --pd-gray:   #a9b3a0;
+      --pd-border: #eef0e6;
+      --pd-shadow: rgba(0,0,0,0.9);
+    }
+  }
+  :root[data-theme="dark"]{
+    --pd-cream:  #14210f;
+    --pd-card:   #1f3315;
+    --pd-ink:    #eef0e6;
+    --pd-gray:   #a9b3a0;
+    --pd-border: #eef0e6;
+    --pd-shadow: rgba(0,0,0,0.9);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--pd-cream);
+    color:var(--pd-ink);
+    font-family:'Space Mono', monospace;
+    min-height:100vh;
+    image-rendering:pixelated;
+  }
+  .pixel-font{ font-family:'Press Start 2P', monospace; }
+
+  /* ---------- layout shell ---------- */
+  .screen{
+    max-width:1400px;
+    margin:0 auto;
+    padding:20px;
+  }
+
+  .layout{
+    display:grid;
+    grid-template-columns:320px 1fr;
+    gap:24px;
+    align-items:start;
+  }
+
+  .sidebar{
+    position:sticky;
+    top:20px;
+    background:var(--pd-card);
+    border-radius:18px;
+    padding:26px 22px;
+    min-height:520px;
+    display:flex;
+    flex-direction:column;
+  }
+  .sidebar-theme-toggle{
+    align-self:flex-end;
+    border-radius:8px;
+    margin-bottom:8px;
+    background:transparent;
+    color:var(--pd-ink);
+    border:2px solid var(--pd-border);
+    opacity:0.6;
+  }
+  .wordmark{
+    display:flex;
+    justify-content:space-between;
+    width:100%;
+    font-family:'Press Start 2P', monospace;
+    font-size:clamp(16px, 2.6vw, 26px);
+    color:var(--pd-ink);
+    margin-bottom:18px;
+  }
+  .sidebar-row{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    margin-bottom:18px;
+  }
+  .counter{
+    font-family:'Press Start 2P', monospace;
+    font-size:11px;
+    color:var(--pd-gray);
+    text-transform:uppercase;
+  }
+  .btn-pill{
+    font-family:'Space Mono',monospace;
+    font-weight:700;
+    font-size:11px;
+    letter-spacing:.3px;
+    color:var(--pd-cream);
+    background:var(--pd-ink);
+    border:none;
+    border-radius:999px;
+    padding:12px 16px;
+    cursor:pointer;
+    align-self:flex-start;
+  }
+  .btn-pill:hover{ opacity:0.88; }
+  .sidebar-hint{
+    margin-top:auto;
+    font-size:11px;
+    line-height:1.6;
+    color:var(--pd-gray);
+  }
+  .theme-toggle{
+    border:2px solid var(--pd-yellow);
+    background:var(--pd-ink);
+    color:var(--pd-yellow);
+    font-family:'Space Mono',monospace;
+    font-size:11px;
+    padding:6px 8px;
+    cursor:pointer;
+  }
+  .theme-toggle:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible{
+    outline:3px solid var(--pd-yellow);
+    outline-offset:2px;
+  }
+
+  .toolbar{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:6px;
+  }
+  .toolbar input[type="search"]{
+    font-family:'Space Mono',monospace;
+    font-size:12px;
+    padding:10px 12px;
+    border:2px solid var(--pd-border);
+    border-radius:10px;
+    background:var(--pd-cream);
+    color:var(--pd-ink);
+  }
+  .toolbar select{
+    font-family:'Space Mono',monospace;
+    font-size:11px;
+    padding:9px 8px;
+    border:2px solid var(--pd-border);
+    border-radius:10px;
+    background:var(--pd-cream);
+    color:var(--pd-ink);
+  }
+  .btn-pixel{
+    font-family:'Press Start 2P', monospace;
+    font-size:10px;
+    color:var(--pd-ink);
+    background:var(--pd-yellow);
+    border:3px solid var(--pd-border);
+    box-shadow:4px 4px 0 var(--pd-shadow);
+    padding:12px 14px;
+    cursor:pointer;
+    line-height:1;
+    white-space:nowrap;
+  }
+  .btn-pixel:active{ box-shadow:1px 1px 0 var(--pd-shadow); transform:translate(3px,3px); }
+  .btn-pixel.secondary{ background:var(--pd-cream); }
+  .btn-pixel.danger{ background:var(--pd-danger); color:var(--pd-cream); }
+
+  /* ---------- species grid (gradient cards) ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(230px,1fr));
+    gap:18px;
+  }
+  .card{
+    position:relative;
+    border:none;
+    border-radius:16px;
+    padding:0;
+    cursor:pointer;
+    height:300px;
+    overflow:hidden;
+    text-align:left;
+    display:block;
+    color:#fff;
+  }
+  .card:hover, .card:focus-visible{ transform:translateY(-2px); }
+  .card .card-bg{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:64px;
+  }
+  .card .card-bg img{ width:76%; height:76%; object-fit:contain; margin:auto; display:block; filter:drop-shadow(0 10px 14px rgba(0,0,0,0.35)); }
+  .card .card-name{
+    position:absolute; top:14px; left:14px; right:14px;
+    font-family:'Space Mono',monospace;
+    font-weight:700;
+    font-size:16px;
+    text-shadow:0 2px 6px rgba(0,0,0,0.55);
+  }
+  .card .card-footer{
+    position:absolute; left:14px; right:14px; bottom:12px;
+    display:flex; align-items:flex-end; justify-content:space-between;
+    gap:8px;
+  }
+  .card .card-latin{
+    font-size:10px; font-style:italic;
+    color:rgba(255,255,255,0.85);
+    text-shadow:0 1px 4px rgba(0,0,0,0.5);
+  }
+  .card .card-type{
+    font-size:9px;
+    background:rgba(0,0,0,0.55);
+    color:#fff;
+    padding:4px 8px;
+    border-radius:6px;
+    white-space:nowrap;
+  }
+
+  /* ---------- stat bars ---------- */
+  .stat-row{ display:flex; align-items:center; gap:6px; font-size:9px; margin:3px 0; }
+  .stat-label{ width:64px; flex:0 0 auto; color:var(--pd-gray); }
+  .stat-track{ flex:1; height:8px; background:var(--pd-ink); border:1px solid var(--pd-border); position:relative; }
+  .stat-fill{ height:100%; }
+  .stat-fill.hp{ background:var(--pd-hp); }
+  .stat-fill.growth{ background:#6aa8ff; }
+  .stat-fill.tough{ background:#c98bff; }
+
+  /* ---------- species grid ---------- */
+  /* ---------- detail overlay ---------- */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(0,0,0,0.72);
+    display:none;
+    align-items:flex-start;
+    justify-content:center;
+    padding:24px 12px;
+    overflow-y:auto;
+    z-index:50;
+  }
+  .overlay.open{ display:flex; }
+  .panel{
+    width:100%; max-width:640px;
+    background:var(--pd-card);
+    border:4px solid var(--pd-border);
+    box-shadow:8px 8px 0 var(--pd-shadow);
+    margin-top:20px;
+  }
+  .panel-head{
+    background:var(--pd-green);
+    color:var(--pd-cream);
+    padding:12px 14px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+  }
+  .panel-head .title{ font-size:12px; }
+  .panel-head .title .lat{ display:block; font-size:9px; font-style:italic; color:var(--pd-yellow); margin-top:4px;}
+  .panel-close{
+    background:var(--pd-ink); color:var(--pd-yellow);
+    border:2px solid var(--pd-yellow);
+    font-family:'Press Start 2P',monospace; font-size:10px;
+    padding:8px 10px; cursor:pointer;
+  }
+  .panel-body{ padding:16px; }
+  .panel-art{
+    height:120px; display:flex; align-items:center; justify-content:center;
+    font-size:70px; border:2px dashed var(--pd-border); margin-bottom:14px;
+  }
+  .tabs{ display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+  .tab-btn{
+    font-family:'Space Mono',monospace; font-size:11px;
+    padding:8px 10px; border:2px solid var(--pd-border);
+    background:var(--pd-cream); color:var(--pd-ink); cursor:pointer;
+  }
+  .tab-btn.active{ background:var(--pd-yellow); }
+  .tab-panel{ display:none; font-size:13px; line-height:1.5; }
+  .tab-panel.active{ display:block; }
+  .info-line{ margin-bottom:10px; }
+  .info-line b{ display:block; font-size:10px; color:var(--pd-green); text-transform:uppercase; letter-spacing:.5px; margin-bottom:2px; }
+  .actions-row{ display:flex; gap:8px; flex-wrap:wrap; margin:14px 0; }
+  .log-list{ list-style:none; padding:0; margin:0; font-size:11px; max-height:180px; overflow-y:auto; border:2px solid var(--pd-border); }
+  .log-list li{ padding:8px 10px; border-bottom:1px solid var(--pd-border); }
+  .log-list li:last-child{ border-bottom:none; }
+  .note-input{
+    width:100%; font-family:'Space Mono',monospace; font-size:12px;
+    border:2px solid var(--pd-border); padding:8px; resize:vertical; min-height:56px;
+    background:var(--pd-cream); color:var(--pd-ink);
+  }
+  .photo-preview{ max-width:100%; border:2px solid var(--pd-border); margin-top:8px; display:block; }
+
+  /* toast */
+  .toast{
+    position:fixed; left:50%; bottom:28px; transform:translateX(-50%);
+    background:var(--pd-yellow); color:var(--pd-ink);
+    border:3px solid var(--pd-border); box-shadow:5px 5px 0 var(--pd-shadow);
+    font-family:'Press Start 2P',monospace; font-size:11px;
+    padding:14px 18px; z-index:60;
+    animation:pd-blink 1.4s steps(1) 2;
+    display:none;
+  }
+  .toast.show{ display:block; }
+  @keyframes pd-blink{ 0%,100%{opacity:1;} 50%{opacity:0.25;} }
+
+  .empty-note{ font-size:11px; color:var(--pd-gray); padding:6px 2px; }
+
+  /* ---------- add-plant form ---------- */
+  .field-group{ margin-bottom:14px; }
+  .field-label{ display:block; font-size:10px; color:var(--pd-green); text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px; }
+  .field-hint{ display:block; font-size:10px; color:var(--pd-gray); margin-top:4px; }
+  .field-input, .field-select{
+    width:100%;
+    font-family:'Space Mono',monospace; font-size:13px;
+    padding:9px 10px; border:2px solid var(--pd-border);
+    background:var(--pd-cream); color:var(--pd-ink);
+  }
+  .or-divider{
+    display:flex; align-items:center; gap:10px;
+    font-size:10px; color:var(--pd-gray); margin:16px 0;
+  }
+  .or-divider::before, .or-divider::after{
+    content:""; flex:1; height:2px; background:var(--pd-border); opacity:0.3;
+  }
+  .form-error{
+    font-size:11px; color:var(--pd-cream); background:var(--pd-danger);
+    border:2px solid var(--pd-border); padding:8px 10px; margin-bottom:12px; display:none;
+  }
+  .form-error.show{ display:block; }
+  .photo-drop{
+    border:2px dashed var(--pd-border); padding:14px; text-align:center;
+    cursor:pointer; font-size:11px; color:var(--pd-gray);
+  }
+  .photo-drop img{ max-width:100%; max-height:140px; display:block; margin:0 auto; }
+
+  /* ---------- engaging fiche content ---------- */
+  .panel-type-chip{
+    display:inline-block; font-size:9px; background:var(--pd-green); color:var(--pd-cream);
+    padding:4px 8px; border:1px solid var(--pd-border); margin-bottom:12px;
+  }
+  .history-box{
+    border-left:4px solid var(--pd-yellow);
+    background:var(--pd-cream);
+    padding:12px 14px;
+    font-style:italic;
+    font-size:12px;
+    line-height:1.65;
+    margin-bottom:16px;
+  }
+  .my-plant-chips{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+  .my-plant-chips .chip{
+    border:2px solid var(--pd-border); background:var(--pd-yellow); color:var(--pd-ink);
+    font-size:9px; padding:6px 8px; display:flex; align-items:center; gap:5px;
+  }
+  .section-heading{
+    font-size:10px; text-transform:uppercase; letter-spacing:.5px;
+    color:var(--pd-green); margin:0 0 8px; display:flex; align-items:center; gap:6px;
+  }
+  .care-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(130px,1fr));
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .care-tile{
+    border:2px solid var(--pd-border);
+    background:var(--pd-card);
+    box-shadow:3px 3px 0 var(--pd-shadow);
+    padding:10px;
+  }
+  .care-tile .care-icon{ font-size:20px; line-height:1; }
+  .care-tile .care-label{
+    font-size:9px; text-transform:uppercase; letter-spacing:.5px;
+    color:var(--pd-green); margin:6px 0 3px;
+  }
+  .care-tile .care-value{ font-size:11px; line-height:1.45; }
+  .care-tile.soil-tile{ grid-column:1 / -1; }
+  .soil-mix-bar{
+    display:flex; height:16px; border:2px solid var(--pd-border);
+    overflow:hidden; margin:8px 0 8px;
+  }
+  .soil-mix-segment{ height:100%; }
+  .soil-mix-legend{ display:flex; flex-wrap:wrap; gap:10px; font-size:9px; margin-bottom:6px; }
+  .soil-mix-legend .legend-item{ display:flex; align-items:center; gap:5px; }
+  .soil-mix-swatch{ width:10px; height:10px; border:1px solid var(--pd-border); display:inline-block; flex:0 0 auto; }
+
+  @media (max-width:780px){
+    .layout{ grid-template-columns:1fr; }
+    .sidebar{ position:static; min-height:auto; }
+  }
+  @media (max-width:480px){
+    .btn-pixel{ font-size:9px; padding:10px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="screen">
+  <div class="layout">
+    <aside class="sidebar">
+      <button class="theme-toggle sidebar-theme-toggle" id="themeToggle" type="button">🌗</button>
+      <div class="wordmark" id="wordmark" aria-label="PLANTEDEX"></div>
+      <div class="sidebar-row">
+        <span class="counter" id="counter">0 plantes</span>
+        <button class="btn-pill" id="openAddBtn" type="button">+ AJOUTER UNE PLANTE</button>
+      </div>
+      <div class="toolbar">
+        <input type="search" id="search" placeholder="Rechercher une plante…" aria-label="Rechercher une plante">
+        <select id="sort" aria-label="Trier">
+          <option value="num">Trier : Numéro</option>
+          <option value="name">Trier : Nom</option>
+          <option value="captured">Trier : Ma collection d'abord</option>
+        </select>
+      </div>
+      <p class="sidebar-hint">Astuce : ouvre une fiche pour lire son histoire, ses besoins en terreau/lumière/arrosage — et l'ajouter à ta collection.</p>
+    </aside>
+
+    <main class="grid" id="grid" aria-label="Bibliothèque de plantes"></main>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="panelTitle">
+  <div class="panel">
+    <div class="panel-head">
+      <div class="title pixel-font" id="panelTitle">—<span class="lat" id="panelLatin"></span></div>
+      <button class="panel-close" id="closePanel" type="button">FERMER</button>
+    </div>
+    <div class="panel-body" id="panelBody"></div>
+  </div>
+</div>
+
+<div class="overlay" id="addOverlay" role="dialog" aria-modal="true" aria-labelledby="addPanelTitle">
+  <div class="panel">
+    <div class="panel-head">
+      <div class="title pixel-font" id="addPanelTitle">AJOUTER UNE PLANTE</div>
+      <button class="panel-close" id="closeAddPanel" type="button">FERMER</button>
+    </div>
+    <div class="panel-body">
+      <p style="font-size:12px; line-height:1.5; margin-top:0;">
+        Pour l'ajouter, prends-la en photo, <strong>ou</strong> indique son nom, sa taille et son état.
+      </p>
+
+      <div class="form-error" id="formError"></div>
+
+      <form id="addForm">
+        <div class="field-group">
+          <span class="field-label">Photo</span>
+          <div class="photo-drop" id="photoDrop">
+            <span id="photoDropText">📸 Choisir une photo (galerie ou appareil)</span>
+            <img id="photoPreview" style="display:none;" alt="Aperçu de la photo">
+          </div>
+          <input type="file" accept="image/*" id="addPhotoInput" style="display:none;">
+        </div>
+
+        <div class="or-divider">OU</div>
+
+        <div class="field-group">
+          <label class="field-label" for="addName">Nom de la plante</label>
+          <input class="field-input" id="addName" list="knownNames" placeholder="Ex : Monstera, Pothos, Ma fougère du salon…" autocomplete="off">
+          <datalist id="knownNames"></datalist>
+          <span class="field-hint">Si le nom correspond à une espèce connue, sa fiche complète (arrosage, lumière, terreau…) sera liée automatiquement.</span>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="addSize">Taille actuelle</label>
+          <select class="field-select" id="addSize">
+            <option value="">— Choisir —</option>
+            <option value="Petite">Petite (moins de 20 cm)</option>
+            <option value="Moyenne">Moyenne (20 à 60 cm)</option>
+            <option value="Grande">Grande (plus de 60 cm)</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="addState">État actuel</label>
+          <select class="field-select" id="addState">
+            <option value="">— Choisir —</option>
+            <option value="healthy">🟢 En pleine forme</option>
+            <option value="at_risk">🟡 Un peu fatiguée</option>
+            <option value="danger">🔴 En détresse</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="addLocation">Emplacement (optionnel)</label>
+          <input class="field-input" id="addLocation" placeholder="Ex : Salon, près de la fenêtre">
+        </div>
+
+        <div class="actions-row">
+          <button type="submit" class="btn-pixel">AJOUTER 🌱</button>
+          <button type="button" class="btn-pixel secondary" id="cancelAddBtn">ANNULER</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SPECIES = [
+    {
+      id:"monstera", num:"001", common:"Monstera", latin:"Monstera deliciosa",
+      type:"Aroïde", emoji:"🌿",
+      stats:{hp:82, growth:88, tough:60},
+      history:"Originaire des forêts tropicales du sud du Mexique et d'Amérique centrale, la Monstera grimpe le long des troncs d'arbres grâce à ses racines aériennes. Ses feuilles se percent de trous en grandissant — un phénomène appelé fenestration — pour laisser passer la lumière et résister au vent tropical. Elle est devenue une icône du design d'intérieur dans les années 2010.",
+      watering:"Arrosage tous les 7 à 10 jours en laissant sécher les 2 premiers centimètres de terreau entre deux arrosages. Réduire de moitié en hiver.",
+      light:"Lumière vive et indirecte. Tolère la mi-ombre mais grandit plus lentement et fenestre moins.",
+      temperature:"18 à 27°C. Sensible en dessous de 12°C.",
+      soil:"Terreau riche et bien drainant : mélange terreau d'intérieur, perlite et écorce de pin (ratio 3:1:1).",
+      soilMix:[{label:"Terreau d'intérieur",parts:3},{label:"Perlite",parts:1},{label:"Écorce de pin",parts:1}],
+      humidity:"Humidité ambiante 50 à 60% idéale ; brumisation occasionnelle appréciée.",
+      toxicity:"Toxique pour chats, chiens et humains en cas d'ingestion (cristaux d'oxalate de calcium)."
+    },
+    {
+      id:"sansevieria", num:"002", common:"Langue de belle-mère", latin:"Sansevieria trifasciata",
+      type:"Succulente", emoji:"🗲",
+      stats:{hp:95, growth:35, tough:97},
+      history:"Native d'Afrique de l'Ouest et d'Asie, cette plante pousse dans des sols arides et rocailleux. Ses feuilles rigides et dressées stockent l'eau, lui permettant de survivre à de longues périodes de sécheresse. Elle est réputée pour filtrer l'air ambiant et fait partie des plantes les plus difficiles à tuer.",
+      watering:"Arrosage toutes les 2 à 3 semaines seulement, laisser le terreau sécher complètement entre deux arrosages.",
+      light:"S'adapte à presque toutes les luminosités, de la lumière vive à l'ombre partielle.",
+      temperature:"15 à 29°C, tolère de courtes baisses jusqu'à 10°C.",
+      soil:"Terreau pour cactus/succulentes, très drainant, avec sable grossier.",
+      soilMix:[{label:"Terreau cactus/succulentes",parts:2},{label:"Sable grossier",parts:1}],
+      humidity:"Faible humidité tolérée, pas de brumisation nécessaire.",
+      toxicity:"Légèrement toxique pour chats et chiens si mâchée."
+    },
+    {
+      id:"ficus", num:"003", common:"Figuier lyre", latin:"Ficus lyrata",
+      type:"Arbustif", emoji:"🍃",
+      stats:{hp:65, growth:70, tough:45},
+      history:"Ce ficus originaire des forêts tropicales d'Afrique de l'Ouest doit son nom à ses grandes feuilles en forme de lyre. Dans son habitat naturel, il peut atteindre 12 mètres de haut. En intérieur, il est appréciée pour sa silhouette sculpturale mais reste sensible aux changements d'environnement.",
+      watering:"Arrosage tous les 7 à 12 jours, dès que le terreau est sec en surface. N'aime pas les excès d'eau ni la sécheresse prolongée.",
+      light:"Lumière vive et filtrée. Éviter le soleil direct qui brûle les feuilles.",
+      temperature:"18 à 24°C, sensible aux courants d'air froid.",
+      soil:"Terreau riche, bien drainant, légèrement acide.",
+      soilMix:[{label:"Terreau riche",parts:3},{label:"Perlite",parts:1}],
+      humidity:"Humidité modérée à élevée ; essuyer les feuilles régulièrement.",
+      toxicity:"Sève irritante pour la peau et les muqueuses, toxique pour animaux si ingérée."
+    },
+    {
+      id:"pothos", num:"004", common:"Pothos", latin:"Epipremnum aureum",
+      type:"Grimpante", emoji:"🍀",
+      stats:{hp:90, growth:92, tough:85},
+      history:"Originaire des îles Salomon dans le Pacifique, le pothos grimpe sur les arbres tropicaux grâce à ses racines aériennes. Introduit massivement dans l'horticulture d'intérieur pour sa croissance rapide, il est aujourd'hui l'une des plantes d'appartement les plus répandues au monde et une valeur sûre pour débuter.",
+      watering:"Arrosage tous les 7 à 10 jours, laisser sécher le terreau en surface.",
+      light:"Très tolérant : lumière vive indirecte à mi-ombre.",
+      temperature:"18 à 29°C.",
+      soil:"Terreau universel bien drainant.",
+      soilMix:[{label:"Terreau universel",parts:4},{label:"Perlite",parts:1}],
+      humidity:"S'adapte à l'humidité ambiante normale d'un intérieur.",
+      toxicity:"Toxique pour chats et chiens en cas d'ingestion."
+    },
+    {
+      id:"calathea", num:"005", common:"Calathea orbifolia", latin:"Goeppertia orbifolia",
+      type:"Feuillage", emoji:"🌱",
+      stats:{hp:48, growth:55, tough:30},
+      history:"Originaire des sous-bois humides de Bolivie, cette plante appartient à la famille des Marantacées, surnommées « plantes qui prient » car leurs feuilles se replient le soir. Elle exige des conditions proches de son habitat naturel et est considérée comme capricieuse par les jardiniers d'intérieur.",
+      watering:"Arrosage tous les 5 à 7 jours avec de l'eau non calcaire, terreau maintenu légèrement humide sans excès.",
+      light:"Lumière moyenne indirecte, jamais de soleil direct.",
+      temperature:"18 à 24°C, sensible aux variations brusques.",
+      soil:"Terreau léger, riche en matière organique, bien drainant.",
+      soilMix:[{label:"Terreau universel",parts:2},{label:"Fibre de coco",parts:1},{label:"Perlite",parts:1}],
+      humidity:"Humidité élevée requise (60%+) ; utiliser un humidificateur si possible.",
+      toxicity:"Non toxique pour les animaux domestiques."
+    },
+    {
+      id:"zz", num:"006", common:"Zamioculcas", latin:"Zamioculcas zamiifolia",
+      type:"Rhizome", emoji:"🌵",
+      stats:{hp:96, growth:40, tough:96},
+      history:"Découverte dans les zones semi-arides d'Afrique de l'Est, cette plante stocke l'eau dans un rhizome souterrain, ce qui la rend extrêmement résistante à la négligence. Elle a été popularisée dans les années 1990 comme plante de bureau increvable.",
+      watering:"Arrosage toutes les 2 à 3 semaines, laisser sécher complètement entre deux arrosages.",
+      light:"Tolère la lumière faible à vive ; évite le soleil direct brûlant.",
+      temperature:"18 à 26°C.",
+      soil:"Terreau très drainant type cactus/succulentes.",
+      soilMix:[{label:"Terreau cactus/succulentes",parts:3},{label:"Sable grossier",parts:1}],
+      humidity:"Faible humidité tolérée sans problème.",
+      toxicity:"Toxique pour chats, chiens et humains si ingérée."
+    },
+    {
+      id:"chlorophytum", num:"007", common:"Plante araignée", latin:"Chlorophytum comosum",
+      type:"Retombante", emoji:"🕸️",
+      stats:{hp:88, growth:80, tough:78},
+      history:"Originaire des régions tropicales et australes d'Afrique, cette plante produit de longues tiges portant de petites plantules qui pendent comme des araignées suspendues à un fil — d'où son nom. Facile à multiplier, elle a orné les intérieurs occidentaux dès les années 1970.",
+      watering:"Arrosage tous les 7 jours, terreau légèrement humide en permanence sans détremper.",
+      light:"Lumière vive indirecte à modérée.",
+      temperature:"15 à 24°C.",
+      soil:"Terreau universel bien drainant.",
+      soilMix:[{label:"Terreau universel",parts:4},{label:"Perlite",parts:1}],
+      humidity:"Humidité ambiante normale suffisante.",
+      toxicity:"Non toxique, mais peut provoquer une légère réaction chez les chats sensibles (effet euphorisant léger)."
+    },
+    {
+      id:"aloe", num:"008", common:"Aloe vera", latin:"Aloe vera",
+      type:"Succulente", emoji:"🪴",
+      stats:{hp:93, growth:38, tough:90},
+      history:"Utilisée depuis plus de 4000 ans dans les civilisations égyptienne et grecque pour ses propriétés apaisantes, l'Aloe vera pousse naturellement dans les régions arides de la péninsule arabique et d'Afrique du Nord. Ses feuilles charnues stockent un gel riche en eau qui lui permet de survivre à la sécheresse.",
+      watering:"Arrosage toutes les 2 à 3 semaines, laisser sécher totalement le terreau.",
+      light:"Lumière vive, quelques heures de soleil direct sont bien tolérées.",
+      temperature:"13 à 27°C.",
+      soil:"Terreau pour cactus/succulentes, très drainant.",
+      soilMix:[{label:"Terreau cactus/succulentes",parts:2},{label:"Sable grossier",parts:1},{label:"Gravillons",parts:1}],
+      humidity:"Faible humidité, pas de brumisation.",
+      toxicity:"Le gel est comestible pour l'humain en usage topique/culinaire dosé, mais la plante est toxique pour chats et chiens si ingérée."
+    },
+    {
+      id:"philodendron", num:"009", common:"Philodendron cœur", latin:"Philodendron hederaceum",
+      type:"Grimpante", emoji:"💚",
+      stats:{hp:84, growth:83, tough:75},
+      history:"Ce philodendron grimpant est natif des forêts tropicales d'Amérique centrale, où il s'accroche aux troncs à l'aide de racines aériennes pour atteindre la lumière de la canopée. Son feuillage en forme de cœur en a fait une plante appréciée pour les étagères et suspensions.",
+      watering:"Arrosage tous les 7 à 10 jours, terreau légèrement sec en surface entre deux arrosages.",
+      light:"Lumière moyenne à vive indirecte.",
+      temperature:"18 à 27°C.",
+      soil:"Terreau riche et drainant, avec un peu de perlite.",
+      soilMix:[{label:"Terreau riche",parts:3},{label:"Perlite",parts:1}],
+      humidity:"Humidité ambiante moyenne à élevée appréciée.",
+      toxicity:"Toxique pour chats et chiens en cas d'ingestion."
+    },
+    {
+      id:"crassula", num:"010", common:"Arbre de jade", latin:"Crassula ovata",
+      type:"Succulente", emoji:"🌳",
+      stats:{hp:91, growth:33, tough:88},
+      history:"Originaire des régions rocailleuses d'Afrique du Sud, cette succulente ressemble à un petit arbre miniature avec un tronc ligneux. Dans plusieurs cultures asiatiques, elle est offerte comme symbole de prospérité et surnommée « plante à monnaie » à cause de ses feuilles rondes évoquant des pièces.",
+      watering:"Arrosage toutes les 2 semaines environ, laisser sécher complètement entre deux arrosages.",
+      light:"Lumière vive, quelques heures de soleil direct bénéfiques.",
+      temperature:"15 à 24°C.",
+      soil:"Terreau très drainant type cactus/succulentes.",
+      soilMix:[{label:"Terreau cactus/succulentes",parts:3},{label:"Sable grossier",parts:1}],
+      humidity:"Faible humidité tolérée.",
+      toxicity:"Toxique pour chats et chiens si ingérée."
+    },
+    {
+      id:"spathiphyllum", num:"011", common:"Fleur de lune", latin:"Spathiphyllum wallisii",
+      type:"Feuillage fleuri", emoji:"🤍",
+      stats:{hp:70, growth:60, tough:50},
+      history:"Découverte dans les sous-bois humides d'Amérique tropicale et d'Asie du Sud-Est, cette plante produit une spathe blanche caractéristique enveloppant sa fleur. Elle est particulièrement expressive : ses feuilles s'affaissent visiblement dès qu'elle manque d'eau, un signal facile à repérer pour les débutants.",
+      watering:"Arrosage tous les 5 à 7 jours, terreau maintenu légèrement humide en permanence.",
+      light:"Lumière faible à moyenne indirecte, jamais de soleil direct.",
+      temperature:"18 à 26°C.",
+      soil:"Terreau riche, retenant bien l'humidité tout en restant drainant.",
+      soilMix:[{label:"Terreau universel",parts:3},{label:"Fibre de coco",parts:1},{label:"Perlite",parts:1}],
+      humidity:"Humidité élevée appréciée ; brumisation régulière recommandée.",
+      toxicity:"Toxique pour chats, chiens et humains en cas d'ingestion."
+    },
+    {
+      id:"dracaena", num:"012", common:"Dracaena marginata", latin:"Dracaena reflexa",
+      type:"Arbustif", emoji:"🌴",
+      stats:{hp:80, growth:50, tough:80},
+      history:"Originaire de Madagascar et de l'île Maurice, cette plante développe un tronc fin et sinueux surmonté de touffes de feuilles étroites bordées de rouge. Dans son milieu naturel, elle peut vivre plusieurs décennies et atteindre plusieurs mètres de haut.",
+      watering:"Arrosage tous les 10 à 14 jours, laisser bien sécher le terreau entre deux arrosages.",
+      light:"Lumière vive indirecte, tolère la mi-ombre.",
+      temperature:"18 à 27°C, sensible au fluor de l'eau du robinet (préférer l'eau filtrée).",
+      soil:"Terreau universel bien drainant.",
+      soilMix:[{label:"Terreau universel",parts:4},{label:"Perlite",parts:1}],
+      humidity:"Humidité ambiante normale suffisante.",
+      toxicity:"Toxique pour chats et chiens en cas d'ingestion."
+    }
+  ];
+
+  var WATER_DAYS = {monstera:9, sansevieria:18, ficus:9, pothos:8, calathea:6, zz:18, chlorophytum:7, aloe:18, philodendron:8, crassula:14, spathiphyllum:6, dracaena:12};
+
+  var STORE_KEY = "plantedex_collection_v1";
+  var CUSTOM_KEY = "plantedex_custom_species_v1";
+  var THEME_KEY = "plantedex_theme_v1";
+
+  function loadCollection(){
+    try{
+      var raw = localStorage.getItem(STORE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){ return {}; }
+  }
+  function saveCollection(coll){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(coll)); }
+    catch(e){ console.error("Sauvegarde impossible", e); }
+  }
+
+  function loadCustomSpecies(){
+    try{
+      var raw = localStorage.getItem(CUSTOM_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }catch(e){ return []; }
+  }
+  function saveCustomSpecies(list){
+    try{ localStorage.setItem(CUSTOM_KEY, JSON.stringify(list)); }
+    catch(e){ console.error("Sauvegarde impossible", e); }
+  }
+
+  var collection = loadCollection();
+  var customSpecies = loadCustomSpecies();
+  var activeId = null;
+  var activeTab = "fiche";
+
+  function allSpecies(){ return SPECIES.concat(customSpecies); }
+
+  function normalize(str){
+    return (str || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
+  }
+
+  function findMatchingSpecies(name){
+    var n = normalize(name);
+    if(!n) return null;
+    var list = allSpecies();
+    for(var i=0;i<list.length;i++){
+      var sp = list[i];
+      if(normalize(sp.common).indexOf(n) !== -1 || n.indexOf(normalize(sp.common)) !== -1) return sp;
+      if(normalize(sp.latin).indexOf(n) !== -1 || n.indexOf(normalize(sp.latin)) !== -1) return sp;
+    }
+    return null;
+  }
+
+  function slugify(str){
+    var base = normalize(str).replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"");
+    return (base || "plante") + "-" + Date.now().toString(36);
+  }
+
+  function nextNum(){
+    var n = allSpecies().length + 1;
+    return String(n).padStart(3,"0");
+  }
+
+  function createCustomSpecies(name){
+    var sp = {
+      id: slugify(name || "plante"),
+      num: nextNum(),
+      common: name && name.trim() ? name.trim() : "Plante non identifiée",
+      latin: "Nom latin non renseigné",
+      type: "Non identifiée",
+      emoji: "🌱",
+      custom: true,
+      stats:{hp:60, growth:60, tough:60},
+      history:"Cette plante ne fait pas encore partie de la bibliothèque PLANTEDEX. Ajoute des notes au fil du temps pour construire sa fiche au fur et à mesure que tu apprends à la connaître.",
+      watering:"Fréquence à déterminer — vérifie l'humidité du terreau avec un doigt avant d'arroser à nouveau.",
+      light:"Observe la réaction des feuilles à son emplacement actuel et ajuste si elles pâlissent ou brûlent.",
+      temperature:"15 à 25°C convient à la plupart des plantes d'intérieur, en l'absence d'information plus précise.",
+      soil:"Terreau universel bien drainant, en attendant une identification précise de l'espèce.",
+      soilMix:[{label:"Terreau universel",parts:1}],
+      humidity:"Humidité ambiante normale d'un intérieur, à ajuster selon les signes de stress.",
+      toxicity:"Non renseignée — par précaution, tiens-la hors de portée des animaux et jeunes enfants."
+    };
+    customSpecies.push(sp);
+    saveCustomSpecies(customSpecies);
+    return sp;
+  }
+
+  var grid = document.getElementById("grid");
+  var counterEl = document.getElementById("counter");
+  var overlay = document.getElementById("overlay");
+  var panelBody = document.getElementById("panelBody");
+  var panelTitle = document.getElementById("panelTitle");
+  var panelLatin = document.getElementById("panelLatin");
+  var toastEl = document.getElementById("toast");
+  var searchInput = document.getElementById("search");
+  var sortSelect = document.getElementById("sort");
+  var themeToggle = document.getElementById("themeToggle");
+
+  function daysSince(dateStr){
+    if(!dateStr) return null;
+    var diff = Date.now() - new Date(dateStr).getTime();
+    return diff / (1000*60*60*24);
+  }
+
+  function computeHealth(sp){
+    var entry = collection[sp.id];
+    if(!entry || !entry.captured) return "undiscovered";
+    var freq = WATER_DAYS[sp.id] || sp.defaultFreq || 10;
+    var d = daysSince(entry.lastWatered);
+    if(d === null) return "at_risk";
+    if(d <= freq) return "healthy";
+    if(d <= freq*1.6) return "at_risk";
+    return "danger";
+  }
+
+  function fmtDate(dateStr){
+    if(!dateStr) return "jamais";
+    var d = new Date(dateStr);
+    return d.toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit', year:'numeric'}) + " à " +
+           d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+  }
+
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    setTimeout(function(){ toastEl.classList.remove("show"); }, 2600);
+  }
+
+  function statBar(label, value, cls){
+    return '<div class="stat-row"><span class="stat-label">'+label+'</span>' +
+      '<div class="stat-track"><div class="stat-fill '+cls+'" style="width:'+value+'%"></div></div></div>';
+  }
+
+  function rgbToHsl(r,g,b){
+    r/=255; g/=255; b/=255;
+    var max=Math.max(r,g,b), min=Math.min(r,g,b);
+    var h,s,l=(max+min)/2;
+    if(max===min){ h=s=0; }
+    else{
+      var d=max-min;
+      s = l>0.5 ? d/(2-max-min) : d/(max+min);
+      if(max===r) h=(g-b)/d+(g<b?6:0);
+      else if(max===g) h=(b-r)/d+2;
+      else h=(r-g)/d+4;
+      h/=6;
+    }
+    return [h*360, s*100, l*100];
+  }
+  function hslToHex(h,s,l){
+    s/=100; l/=100;
+    var c=(1-Math.abs(2*l-1))*s, x=c*(1-Math.abs((h/60)%2-1)), m=l-c/2, r,g,b;
+    if(h<60){r=c;g=x;b=0;} else if(h<120){r=x;g=c;b=0;} else if(h<180){r=0;g=c;b=x;}
+    else if(h<240){r=0;g=x;b=c;} else if(h<300){r=x;g=0;b=c;} else {r=c;g=0;b=x;}
+    var toHex = function(v){ var n=Math.round((v+m)*255); return n.toString(16).padStart(2,"0"); };
+    return "#"+toHex(r)+toHex(g)+toHex(b);
+  }
+  function gradientFromImage(dataUrl, callback){
+    var img = new Image();
+    img.onload = function(){
+      try{
+        var size = 32;
+        var c = document.createElement("canvas");
+        c.width = size; c.height = size;
+        var ctx = c.getContext("2d");
+        ctx.drawImage(img, 0, 0, size, size);
+        var data = ctx.getImageData(0, 0, size, size).data;
+        var r=0,g=0,b=0,n=0;
+        for(var i=0;i<data.length;i+=4){
+          r+=data[i]; g+=data[i+1]; b+=data[i+2]; n++;
+        }
+        r=r/n; g=g/n; b=b/n;
+        var hsl = rgbToHsl(r,g,b);
+        var h = hsl[0];
+        var s = Math.min(hsl[1]*1.25, 78);
+        var top = hslToHex(h, s, 62);
+        var bottom = hslToHex(h, Math.min(s*1.1,85), 16);
+        callback({top:top, bottom:bottom});
+      }catch(e){
+        callback(null); // e.g. tainted canvas — fall back silently
+      }
+    };
+    img.onerror = function(){ callback(null); };
+    img.src = dataUrl;
+  }
+
+  var CARD_GRADIENTS = {
+    monstera:     "linear-gradient(180deg,#6f9d52 0%,#1c3410 100%)",
+    sansevieria:  "linear-gradient(180deg,#a2ac52 0%,#4d5a1e 100%)",
+    ficus:        "linear-gradient(180deg,#dcc48f 0%,#7a5a34 100%)",
+    pothos:       "linear-gradient(180deg,#aab98c 0%,#3c3a28 100%)",
+    calathea:     "linear-gradient(180deg,#bdb7a8 0%,#2b2a26 100%)",
+    zz:           "linear-gradient(180deg,#c0392b 0%,#2a1810 100%)",
+    chlorophytum: "linear-gradient(180deg,#71b04c 0%,#1c3410 100%)",
+    aloe:         "linear-gradient(180deg,#63a24e 0%,#163310 100%)",
+    philodendron: "linear-gradient(180deg,#6db052 0%,#1a3312 100%)",
+    crassula:     "linear-gradient(180deg,#71b055 0%,#1c3410 100%)",
+    spathiphyllum:"linear-gradient(180deg,#ada896 0%,#33312c 100%)",
+    dracaena:     "linear-gradient(180deg,#7fa060 0%,#23331a 100%)"
+  };
+  var DEFAULT_GRADIENT = "linear-gradient(180deg,#a5a496 0%,#33322c 100%)";
+
+  function renderGrid(){
+    var query = searchInput.value.trim().toLowerCase();
+    var sortBy = sortSelect.value;
+
+    var list = allSpecies().filter(function(sp){
+      if(!query) return true;
+      return sp.common.toLowerCase().indexOf(query) !== -1 ||
+             sp.latin.toLowerCase().indexOf(query) !== -1;
+    });
+
+    list = list.slice().sort(function(a,b){
+      if(sortBy === "name") return a.common.localeCompare(b.common);
+      if(sortBy === "captured"){
+        var ca = collection[a.id] && collection[a.id].captured ? 1 : 0;
+        var cb = collection[b.id] && collection[b.id].captured ? 1 : 0;
+        if(ca !== cb) return cb - ca;
+        return a.num.localeCompare(b.num);
+      }
+      return a.num.localeCompare(b.num);
+    });
+
+    grid.innerHTML = "";
+    list.forEach(function(sp){
+      var entry = collection[sp.id];
+      var captured = entry && entry.captured;
+      var hasPhoto = captured && entry.photo;
+      var gradient = (hasPhoto && entry.gradient) ?
+        "linear-gradient(180deg,"+entry.gradient.top+" 0%,"+entry.gradient.bottom+" 100%)" :
+        (CARD_GRADIENTS[sp.id] || DEFAULT_GRADIENT);
+
+      var card = document.createElement("button");
+      card.type = "button";
+      card.className = "card";
+      card.setAttribute("aria-label", sp.common);
+
+      card.innerHTML =
+        '<div class="card-bg" style="background:' + gradient + ';">' +
+          (hasPhoto ? '<img src="'+entry.photo+'" alt="Photo de '+sp.common+'">' : sp.emoji) +
+        '</div>' +
+        '<span class="card-name">'+ sp.common +'</span>' +
+        '<div class="card-footer">' +
+          '<span class="card-latin">'+ sp.latin +'</span>' +
+          '<span class="card-type">'+ sp.type +'</span>' +
+        '</div>';
+
+      card.addEventListener("click", function(){ openPanel(sp.id); });
+      grid.appendChild(card);
+    });
+
+    var capturedCount = allSpecies().filter(function(sp){ return collection[sp.id] && collection[sp.id].captured; }).length;
+    counterEl.textContent = capturedCount + " plante" + (capturedCount === 1 ? "" : "s");
+  }
+
+  function findSpecies(id){
+    var list = allSpecies();
+    for(var i=0;i<list.length;i++){ if(list[i].id === id) return list[i]; }
+    return null;
+  }
+
+  function setTab(tab){
+    activeTab = tab;
+    renderPanelBody();
+  }
+
+  function deletePlant(id){
+    var sp = findSpecies(id);
+    var ok = confirm("Supprimer " + (sp ? sp.common : "cette plante") + " de ta collection ? Cette action est définitive.");
+    if(!ok) return;
+
+    delete collection[id];
+    saveCollection(collection);
+
+    if(sp && sp.custom){
+      customSpecies = customSpecies.filter(function(s){ return s.id !== id; });
+      saveCustomSpecies(customSpecies);
+    }
+
+    closePanel();
+    renderGrid();
+    showToast("🗑️ " + (sp ? sp.common : "Plante") + " supprimée");
+  }
+
+  function markWatered(id){
+    var now = new Date().toISOString();
+    collection[id].lastWatered = now;
+    collection[id].log = collection[id].log || [];
+    collection[id].log.unshift({action:"Arrosée", timestamp:now});
+    saveCollection(collection);
+    showToast("💧 Arrosage enregistré");
+    renderGrid();
+    renderPanelBody();
+  }
+
+  function addNote(id, text){
+    if(!text || !text.trim()) return;
+    var now = new Date().toISOString();
+    collection[id].notes = collection[id].notes || [];
+    collection[id].notes.unshift({text:text.trim(), timestamp:now});
+    collection[id].log = collection[id].log || [];
+    collection[id].log.unshift({action:"Note ajoutée : " + text.trim(), timestamp:now});
+    saveCollection(collection);
+    showToast("📝 Note ajoutée");
+    renderPanelBody();
+  }
+
+  function handlePhoto(id, file){
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      try{
+        collection[id].photo = reader.result;
+        collection[id].log = collection[id].log || [];
+        collection[id].log.unshift({action:"Photo mise à jour", timestamp:new Date().toISOString()});
+        saveCollection(collection);
+        showToast("📸 Photo mise à jour");
+        renderPanelBody();
+        renderGrid();
+        gradientFromImage(reader.result, function(grad){
+          if(!grad) return;
+          collection[id].gradient = grad;
+          saveCollection(collection);
+          renderGrid();
+        });
+      }catch(e){
+        showToast("⚠️ Impossible d'enregistrer la photo");
+      }
+    };
+    reader.onerror = function(){ showToast("⚠️ Lecture de l'image impossible"); };
+    reader.readAsDataURL(file);
+  }
+
+  function reportIssue(id){
+    var entry = collection[id];
+    entry.log = entry.log || [];
+    entry.log.unshift({action:"⚠️ Problème signalé par l'utilisateur", timestamp:new Date().toISOString()});
+    saveCollection(collection);
+    showToast("⚠️ Problème noté dans le journal");
+    renderPanelBody();
+  }
+
+  function openPanel(id){
+    activeId = id;
+    activeTab = "fiche";
+    var sp = findSpecies(id);
+    panelTitle.innerHTML = sp.common + '<span class="lat" id="panelLatin">'+sp.latin+'</span>';
+    overlay.classList.add("open");
+    renderPanelBody();
+    document.getElementById("closePanel").focus();
+  }
+
+  function closePanel(){
+    overlay.classList.remove("open");
+    activeId = null;
+  }
+
+  var SOIL_COLORS = ["#8a5a34","#6b8f4e","#c9a35b","#4c7a8a","#a85a8a","#b3892a"];
+
+  function renderSoilTile(sp){
+    var mix = sp.soilMix || [{label:"Terreau universel", parts:1}];
+    var total = mix.reduce(function(sum,m){ return sum + m.parts; }, 0);
+    var bar = mix.map(function(m, i){
+      var pct = Math.round((m.parts / total) * 1000) / 10;
+      return '<div class="soil-mix-segment" style="width:'+pct+'%;background:'+SOIL_COLORS[i % SOIL_COLORS.length]+';"></div>';
+    }).join("");
+    var legend = mix.map(function(m, i){
+      return '<span class="legend-item"><span class="soil-mix-swatch" style="background:'+SOIL_COLORS[i % SOIL_COLORS.length]+';"></span>'+
+        m.label + ' (' + m.parts + ')</span>';
+    }).join("");
+    return '<div class="care-tile soil-tile">' +
+      '<span class="care-icon">🌱</span>' +
+      '<div class="care-label">Terreau</div>' +
+      '<div class="soil-mix-bar">' + bar + '</div>' +
+      '<div class="soil-mix-legend">' + legend + '</div>' +
+      '<div class="care-value">' + sp.soil + '</div>' +
+    '</div>';
+  }
+
+  function careTile(icon, label, value){
+    return '<div class="care-tile">' +
+      '<span class="care-icon">'+icon+'</span>' +
+      '<div class="care-label">'+label+'</div>' +
+      '<div class="care-value">'+value+'</div>' +
+    '</div>';
+  }
+
+  function renderPanelBody(){
+    if(!activeId) return;
+    var sp = findSpecies(activeId);
+    var entry = collection[activeId];
+    var captured = entry && entry.captured;
+
+    var artSrc = (captured && entry.photo) ? '<img src="'+entry.photo+'" alt="Photo de '+sp.common+'" style="max-height:100%;max-width:100%;">' : sp.emoji;
+
+    var html = '<div class="panel-art">' + artSrc + '</div>';
+    html += '<span class="panel-type-chip">' + sp.type + '</span>';
+    html += '<div class="history-box">' + sp.history + '</div>';
+
+    if(captured){
+      html += '<div class="my-plant-chips">' +
+          '<span class="chip">📏 ' + (entry.size || "taille non renseignée") + '</span>' +
+          '<span class="chip">📍 ' + (entry.location || "emplacement non renseigné") + '</span>' +
+          '<span class="chip">🗓️ Ajoutée le ' + fmtDate(entry.dateAdded).split(" à ")[0] + '</span>' +
+        '</div>';
+    }
+
+    html += '<h3 class="section-heading">🪴 Besoins d\'entretien</h3>';
+    html += '<div class="care-grid">' +
+      careTile("💧", "Arrosage", sp.watering) +
+      careTile("☀️", "Lumière", sp.light) +
+      careTile("🌡️", "Température", sp.temperature) +
+      careTile("💦", "Humidité", sp.humidity) +
+      renderSoilTile(sp) +
+      careTile("☠️", "Toxicité", sp.toxicity) +
+    '</div>';
+
+    if(captured){
+      html += '<div class="actions-row">' +
+          '<button class="btn-pixel secondary" id="photoBtnTrigger">📸 PHOTO</button>' +
+          '<button class="btn-pixel danger" id="deleteBtn">🗑️ SUPPRIMER</button>' +
+          '<input type="file" accept="image/*" id="photoInput" style="display:none;">' +
+        '</div>';
+    } else {
+      html += '<div class="empty-note">Cette plante n\'est pas encore dans ta collection — ajoute-la via « + Ajouter une plante » pour suivre son entretien.</div>';
+    }
+
+    panelBody.innerHTML = html;
+
+    // wire dynamic buttons
+    var deleteBtn = document.getElementById("deleteBtn");
+    if(deleteBtn){ deleteBtn.addEventListener("click", function(){ deletePlant(activeId); }); }
+
+    var photoTrigger = document.getElementById("photoBtnTrigger");
+    var photoInput = document.getElementById("photoInput");
+    if(photoTrigger && photoInput){
+      photoTrigger.addEventListener("click", function(){ photoInput.click(); });
+      photoInput.addEventListener("change", function(e){
+        handlePhoto(activeId, e.target.files && e.target.files[0]);
+      });
+    }
+  }
+
+  document.getElementById("closePanel").addEventListener("click", closePanel);
+  overlay.addEventListener("click", function(e){ if(e.target === overlay) closePanel(); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") closePanel(); });
+
+  searchInput.addEventListener("input", renderGrid);
+  sortSelect.addEventListener("change", renderGrid);
+
+  // theme toggle (per-viewer convenience only)
+  function applyStoredTheme(){
+    try{
+      var t = localStorage.getItem(THEME_KEY);
+      if(t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    }catch(e){}
+  }
+  themeToggle.addEventListener("click", function(){
+    var current = document.documentElement.getAttribute("data-theme");
+    var next = current === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try{ localStorage.setItem(THEME_KEY, next); }catch(e){}
+  });
+
+  // ---------- add-plant modal ----------
+  var addOverlay = document.getElementById("addOverlay");
+  var addForm = document.getElementById("addForm");
+  var formError = document.getElementById("formError");
+  var addPhotoInput = document.getElementById("addPhotoInput");
+  var photoDrop = document.getElementById("photoDrop");
+  var photoDropText = document.getElementById("photoDropText");
+  var photoPreview = document.getElementById("photoPreview");
+  var knownNames = document.getElementById("knownNames");
+  var pendingPhotoData = null;
+
+  function populateKnownNames(){
+    knownNames.innerHTML = allSpecies().map(function(sp){
+      return '<option value="'+sp.common+'">';
+    }).join("");
+  }
+
+  function openAddModal(){
+    addForm.reset();
+    formError.classList.remove("show");
+    pendingPhotoData = null;
+    photoPreview.style.display = "none";
+    photoDropText.style.display = "inline";
+    populateKnownNames();
+    addOverlay.classList.add("open");
+    document.getElementById("addName").focus();
+  }
+  function closeAddModal(){ addOverlay.classList.remove("open"); }
+
+  document.getElementById("openAddBtn").addEventListener("click", openAddModal);
+  document.getElementById("closeAddPanel").addEventListener("click", closeAddModal);
+  document.getElementById("cancelAddBtn").addEventListener("click", closeAddModal);
+  addOverlay.addEventListener("click", function(e){ if(e.target === addOverlay) closeAddModal(); });
+
+  photoDrop.addEventListener("click", function(){ addPhotoInput.click(); });
+  addPhotoInput.addEventListener("change", function(e){
+    var file = e.target.files && e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      pendingPhotoData = reader.result;
+      photoPreview.src = pendingPhotoData;
+      photoPreview.style.display = "block";
+      photoDropText.style.display = "none";
+    };
+    reader.onerror = function(){ showToast("⚠️ Lecture de l'image impossible"); };
+    reader.readAsDataURL(file);
+  });
+
+  var STATE_OFFSET_RATIO = {healthy:0.2, at_risk:1.3, danger:2.2};
+
+  addForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    var name = document.getElementById("addName").value.trim();
+    var size = document.getElementById("addSize").value;
+    var state = document.getElementById("addState").value;
+    var location = document.getElementById("addLocation").value.trim();
+
+    var hasPhoto = !!pendingPhotoData;
+    var hasManual = !!(name && size && state);
+
+    if(!hasPhoto && !hasManual){
+      formError.textContent = "Ajoute une photo, ou renseigne le nom, la taille et l'état pour continuer.";
+      formError.classList.add("show");
+      return;
+    }
+    formError.classList.remove("show");
+
+    var sp = name ? findMatchingSpecies(name) : null;
+    if(!sp){
+      sp = createCustomSpecies(name || "Plante non identifiée");
+    }
+
+    var freq = WATER_DAYS[sp.id] || sp.defaultFreq || 10;
+    var ratio = STATE_OFFSET_RATIO[state] || STATE_OFFSET_RATIO.healthy;
+    var lastWateredDate = new Date(Date.now() - freq * ratio * 24 * 60 * 60 * 1000);
+    var now = new Date().toISOString();
+
+    collection[sp.id] = collection[sp.id] || {};
+    collection[sp.id].captured = true;
+    collection[sp.id].dateAdded = now;
+    collection[sp.id].lastWatered = lastWateredDate.toISOString();
+    collection[sp.id].size = size || collection[sp.id].size || null;
+    collection[sp.id].location = location || collection[sp.id].location || null;
+    if(pendingPhotoData) collection[sp.id].photo = pendingPhotoData;
+    collection[sp.id].notes = collection[sp.id].notes || [];
+    collection[sp.id].log = collection[sp.id].log || [];
+    collection[sp.id].log.unshift({action:"Ajoutée à la collection", timestamp:now});
+    saveCollection(collection);
+
+    closeAddModal();
+    showToast("🎉 " + sp.common + " ajoutée !");
+    renderGrid();
+    openPanel(sp.id);
+
+    if(pendingPhotoData){
+      gradientFromImage(pendingPhotoData, function(grad){
+        if(!grad) return;
+        collection[sp.id].gradient = grad;
+        saveCollection(collection);
+        renderGrid();
+      });
+    }
+  });
+
+  function renderWordmark(){
+    var word = "PLANTEDEX";
+    var el = document.getElementById("wordmark");
+    el.innerHTML = word.split("").map(function(ch){ return "<span>"+ch+"</span>"; }).join("");
+  }
+
+  applyStoredTheme();
+  renderWordmark();
+  renderGrid();
+})();
+</script>
+</body>
+</html>
