@@ -1085,6 +1085,21 @@
     };
   }
 
+  var speciesPhotos = {}; // species_id -> photo_url (bibliothèque, issues de Perenual)
+
+  async function loadSpeciesPhotos(){
+    try{
+      var res = await fetch(SUPABASE_URL + "/rest/v1/species_photos?select=species_id,photo_url", { headers: SB_HEADERS });
+      if(!res.ok) throw new Error("HTTP " + res.status);
+      var rows = await res.json();
+      rows.forEach(function(r){ speciesPhotos[r.species_id] = r.photo_url; });
+      renderGrid();
+      if(activeId) renderPanelBody();
+    }catch(e){
+      console.error("Photos de bibliothèque indisponibles :", e);
+    }
+  }
+
   async function syncFromSupabase(){
     var rows = await sbLoadPlants();
     if(!rows) return; // Supabase injoignable (hors-ligne, ou bloqué par l'aperçu) — on garde le cache local
@@ -1333,7 +1348,8 @@
     list.forEach(function(sp){
       var entry = collection[sp.id];
       var captured = entry && entry.captured;
-      var hasPhoto = captured && entry.photo;
+      var hasPhoto = !!(captured && entry.photo) || !!speciesPhotos[sp.id];
+      var photoSrc = (captured && entry.photo) ? entry.photo : speciesPhotos[sp.id];
       var gradient = (hasPhoto && entry.gradient) ?
         "linear-gradient(180deg,"+entry.gradient.top+" 0%,"+entry.gradient.bottom+" 100%)" :
         (CARD_GRADIENTS[sp.id] || DEFAULT_GRADIENT);
@@ -1345,7 +1361,7 @@
 
       card.innerHTML =
         '<div class="card-bg" style="background:' + gradient + ';">' +
-          (hasPhoto ? '<img src="'+entry.photo+'" alt="Photo de '+sp.common+'">' : sp.emoji) +
+          (hasPhoto ? '<img src="'+photoSrc+'" alt="Photo de '+sp.common+'">' : sp.emoji) +
         '</div>' +
         '<span class="card-name">'+ sp.common +'</span>' +
         '<div class="card-footer">' +
@@ -1507,7 +1523,8 @@
     var entry = collection[activeId];
     var captured = entry && entry.captured;
 
-    var artSrc = (captured && entry.photo) ? '<img src="'+entry.photo+'" alt="Photo de '+sp.common+'" style="max-height:100%;max-width:100%;">' : sp.emoji;
+    var panelPhoto = (captured && entry.photo) ? entry.photo : speciesPhotos[sp.id];
+    var artSrc = panelPhoto ? '<img src="'+panelPhoto+'" alt="Photo de '+sp.common+'" style="max-height:100%;max-width:100%;">' : sp.emoji;
 
     var html = '<div class="panel-art">' + artSrc + '</div>';
     html += '<span class="panel-type-chip">' + sp.type + '</span>';
@@ -1725,6 +1742,7 @@
   renderWordmark();
   renderGrid();
   syncFromSupabase();
+  loadSpeciesPhotos();
 })();
 </script>
 </body>
