@@ -71,7 +71,7 @@ create policy "Accès public en lecture/écriture (V1 sans auth)"
 -- indépendante de "plants" qui ne contient que les instances personnelles.
 create table if not exists species_photos (
   species_id text primary key, -- correspond à l'id local (ex: "monstera")
-  photo_url text not null, -- URL publique dans le bucket Storage "species-photos"
+  photo_url text not null, -- URL publique dans le bucket Storage "species-photo"
   perenual_id integer,
   license text,
   updated_at timestamptz not null default now()
