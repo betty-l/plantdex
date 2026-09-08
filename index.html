@@ -681,15 +681,96 @@
   var CUSTOM_KEY = "plantedex_custom_species_v1";
   var THEME_KEY = "plantedex_theme_v1";
 
+  // ---------- Supabase config ----------
+  var SUPABASE_URL = "https://rtqkgpuppgwmsqtedhwx.supabase.co";
+  var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0cWtncHVwcGd3bXNxdGVkaHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4OTk3MjQsImV4cCI6MjEwNDQ3NTcyNH0.X1FOsHxlMmrwRzRD0vuiAQ6X_Orfq3wlrzih_xAymWg";
+  var SB_HEADERS = {
+    "apikey": SUPABASE_ANON_KEY,
+    "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+    "Content-Type": "application/json"
+  };
+
+  async function sbUpsertPlants(rows){
+    if(!rows || !rows.length) return;
+    try{
+      await fetch(SUPABASE_URL + "/rest/v1/plants?on_conflict=species_id", {
+        method: "POST",
+        headers: Object.assign({}, SB_HEADERS, {"Prefer":"resolution=merge-duplicates,return=minimal"}),
+        body: JSON.stringify(rows)
+      });
+    }catch(e){ console.error("Supabase upsert impossible (hors-ligne ou bloqué) :", e); }
+  }
+
+  async function sbDeletePlant(speciesId){
+    try{
+      await fetch(SUPABASE_URL + "/rest/v1/plants?species_id=eq." + encodeURIComponent(speciesId), {
+        method: "DELETE",
+        headers: SB_HEADERS
+      });
+    }catch(e){ console.error("Supabase delete impossible :", e); }
+  }
+
+  async function sbLoadPlants(){
+    try{
+      var res = await fetch(SUPABASE_URL + "/rest/v1/plants?select=*", { headers: SB_HEADERS });
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      return await res.json();
+    }catch(e){
+      console.error("Supabase indisponible, on reste sur le cache local :", e);
+      return null;
+    }
+  }
+
+  async function sbUploadPhoto(file, speciesId){
+    try{
+      var ext = (file.type && file.type.split("/")[1]) || "jpg";
+      var path = speciesId + "-" + Date.now() + "." + ext;
+      var res = await fetch(SUPABASE_URL + "/storage/v1/object/plant-photos/" + path, {
+        method: "POST",
+        headers: {
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+          "Content-Type": file.type || "image/jpeg"
+        },
+        body: file
+      });
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      return SUPABASE_URL + "/storage/v1/object/public/plant-photos/" + path;
+    }catch(e){
+      console.error("Upload Supabase Storage impossible :", e);
+      return null;
+    }
+  }
+
   function loadCollection(){
     try{
       var raw = localStorage.getItem(STORE_KEY);
       return raw ? JSON.parse(raw) : {};
     }catch(e){ return {}; }
   }
-  function saveCollection(coll){
+  function cacheCollection(coll){
     try{ localStorage.setItem(STORE_KEY, JSON.stringify(coll)); }
-    catch(e){ console.error("Sauvegarde impossible", e); }
+    catch(e){ console.error("Cache local impossible", e); }
+  }
+  function saveCollection(coll){
+    cacheCollection(coll);
+    var rows = [];
+    Object.keys(coll).forEach(function(id){
+      var e = coll[id];
+      if(!e || !e.captured) return;
+      rows.push({
+        species_id: id,
+        is_custom: !!(findStaticSpecies(id) === null),
+        photo_url: e.photo || null,
+        gradient_top: e.gradient ? e.gradient.top : null,
+        gradient_bottom: e.gradient ? e.gradient.bottom : null,
+        size: e.size || null,
+        location: e.location || null,
+        date_added: e.dateAdded || null,
+        last_watered: e.lastWatered || null
+      });
+    });
+    sbUpsertPlants(rows);
   }
 
   function loadCustomSpecies(){
@@ -698,9 +779,90 @@
       return raw ? JSON.parse(raw) : [];
     }catch(e){ return []; }
   }
-  function saveCustomSpecies(list){
+  function cacheCustomSpecies(list){
     try{ localStorage.setItem(CUSTOM_KEY, JSON.stringify(list)); }
-    catch(e){ console.error("Sauvegarde impossible", e); }
+    catch(e){ console.error("Cache local impossible", e); }
+  }
+  function saveCustomSpecies(list){
+    cacheCustomSpecies(list);
+    var rows = list.map(function(sp){
+      return {
+        species_id: sp.id,
+        is_custom: true,
+        common_name: sp.common,
+        scientific_name: sp.latin,
+        species_type: sp.type,
+        emoji: sp.emoji,
+        history: sp.history,
+        watering: sp.watering,
+        light: sp.light,
+        temperature: sp.temperature,
+        soil: sp.soil,
+        soil_mix: sp.soilMix || null,
+        humidity: sp.humidity,
+        toxicity: sp.toxicity
+      };
+    });
+    sbUpsertPlants(rows);
+  }
+
+  function findStaticSpecies(id){
+    for(var i=0;i<SPECIES.length;i++){ if(SPECIES[i].id === id) return SPECIES[i]; }
+    return null;
+  }
+
+  function buildCustomSpeciesFromRow(row, num){
+    return {
+      id: row.species_id,
+      num: num,
+      common: row.common_name || "Plante non identifiée",
+      latin: row.scientific_name || "Nom latin non renseigné",
+      type: row.species_type || "Non identifiée",
+      emoji: row.emoji || "🌱",
+      custom: true,
+      stats:{hp:60, growth:60, tough:60},
+      history: row.history || "Cette plante ne fait pas encore partie de la bibliothèque PLANTEDEX.",
+      watering: row.watering || "Fréquence à déterminer.",
+      light: row.light || "À observer selon l'emplacement.",
+      temperature: row.temperature || "15 à 25°C par défaut.",
+      soil: row.soil || "Terreau universel bien drainant.",
+      soilMix: row.soil_mix || [{label:"Terreau universel", parts:1}],
+      humidity: row.humidity || "Humidité ambiante normale.",
+      toxicity: row.toxicity || "Non renseignée."
+    };
+  }
+
+  async function syncFromSupabase(){
+    var rows = await sbLoadPlants();
+    if(!rows) return; // Supabase injoignable (hors-ligne, ou bloqué par l'aperçu) — on garde le cache local
+
+    var newCollection = {};
+    var newCustom = [];
+    rows.forEach(function(row){
+      if(!row.species_id) return;
+      newCollection[row.species_id] = {
+        captured: true,
+        dateAdded: row.date_added,
+        lastWatered: row.last_watered,
+        size: row.size,
+        location: row.location,
+        photo: row.photo_url,
+        gradient: (row.gradient_top && row.gradient_bottom) ? {top:row.gradient_top, bottom:row.gradient_bottom} : null,
+        notes: [], log: []
+      };
+      if(row.is_custom){ newCustom.push(row); }
+    });
+
+    newCustom = newCustom.map(function(row, i){
+      return buildCustomSpeciesFromRow(row, String(SPECIES.length + i + 1).padStart(3,"0"));
+    });
+
+    collection = newCollection;
+    customSpecies = newCustom;
+    cacheCollection(collection);
+    cacheCustomSpecies(customSpecies);
+    renderGrid();
+    if(activeId) renderPanelBody();
   }
 
   var collection = loadCollection();
@@ -709,6 +871,7 @@
   var activeTab = "fiche";
 
   function allSpecies(){ return SPECIES.concat(customSpecies); }
+
 
   function normalize(str){
     return (str || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
@@ -944,11 +1107,12 @@
     if(!ok) return;
 
     delete collection[id];
-    saveCollection(collection);
+    cacheCollection(collection);
+    sbDeletePlant(id);
 
     if(sp && sp.custom){
       customSpecies = customSpecies.filter(function(s){ return s.id !== id; });
-      saveCustomSpecies(customSpecies);
+      cacheCustomSpecies(customSpecies);
     }
 
     closePanel();
@@ -984,7 +1148,7 @@
     var reader = new FileReader();
     reader.onload = function(){
       try{
-        collection[id].photo = reader.result;
+        collection[id].photo = reader.result; // aperçu local instantané (base64)
         collection[id].log = collection[id].log || [];
         collection[id].log.unshift({action:"Photo mise à jour", timestamp:new Date().toISOString()});
         saveCollection(collection);
@@ -996,6 +1160,13 @@
           collection[id].gradient = grad;
           saveCollection(collection);
           renderGrid();
+        });
+        sbUploadPhoto(file, id).then(function(url){
+          if(!url) return;
+          collection[id].photo = url; // remplace le base64 par la vraie URL hébergée
+          saveCollection(collection);
+          renderGrid();
+          if(activeId === id) renderPanelBody();
         });
       }catch(e){
         showToast("⚠️ Impossible d'enregistrer la photo");
@@ -1146,6 +1317,7 @@
   var photoPreview = document.getElementById("photoPreview");
   var knownNames = document.getElementById("knownNames");
   var pendingPhotoData = null;
+  var pendingPhotoFile = null;
 
   function populateKnownNames(){
     knownNames.innerHTML = allSpecies().map(function(sp){
@@ -1157,6 +1329,7 @@
     addForm.reset();
     formError.classList.remove("show");
     pendingPhotoData = null;
+    pendingPhotoFile = null;
     photoPreview.style.display = "none";
     photoDropText.style.display = "inline";
     populateKnownNames();
@@ -1174,6 +1347,7 @@
   addPhotoInput.addEventListener("change", function(e){
     var file = e.target.files && e.target.files[0];
     if(!file) return;
+    pendingPhotoFile = file;
     var reader = new FileReader();
     reader.onload = function(){
       pendingPhotoData = reader.result;
@@ -1239,6 +1413,15 @@
         renderGrid();
       });
     }
+    if(pendingPhotoFile){
+      sbUploadPhoto(pendingPhotoFile, sp.id).then(function(url){
+        if(!url) return;
+        collection[sp.id].photo = url;
+        saveCollection(collection);
+        renderGrid();
+        if(activeId === sp.id) renderPanelBody();
+      });
+    }
   });
 
   function renderWordmark(){
@@ -1250,6 +1433,7 @@
   applyStoredTheme();
   renderWordmark();
   renderGrid();
+  syncFromSupabase();
 })();
 </script>
 </body>
