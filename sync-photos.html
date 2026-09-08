@@ -89,16 +89,27 @@
     return json.data[0]; // premier résultat
   }
 
-  function pickImageUrl(entry){
+  function pickImageCandidates(entry){
     var img = entry.default_image;
-    if(!img) return null;
-    return img.regular_url || img.medium_url || img.original_url || img.small_url || img.thumbnail || null;
+    if(!img) return [];
+    var candidates = [img.original_url, img.regular_url, img.medium_url, img.small_url, img.thumbnail];
+    return candidates.filter(function(u){ return !!u; });
   }
 
-  async function uploadToSupabase(imageUrl, speciesId){
-    var imgRes = await fetch(imageUrl);
-    if(!imgRes.ok) throw new Error("Téléchargement image HTTP " + imgRes.status);
-    var blob = await imgRes.blob();
+  async function fetchFirstWorkingImage(candidates){
+    for(var i=0; i<candidates.length; i++){
+      try{
+        var res = await fetch(candidates[i]);
+        if(res.ok) return { blob: await res.blob(), url: candidates[i] };
+        log("    (lien mort, essai suivant : " + candidates[i] + " → HTTP " + res.status + ")", "warn");
+      }catch(e){
+        log("    (lien injoignable, essai suivant : " + candidates[i] + ")", "warn");
+      }
+    }
+    return null;
+  }
+
+  async function uploadToSupabase(blob, speciesId){
     var ext = (blob.type && blob.type.split("/")[1]) || "jpg";
     var path = speciesId + "." + ext;
 
@@ -153,11 +164,15 @@
         var entry = await searchPerenual(key, sp.latin);
         if(!entry){ log("  ✖ Aucun résultat Perenual pour " + sp.latin, "fail"); failCount++; await sleep(400); continue; }
 
-        var imageUrl = pickImageUrl(entry);
-        if(!imageUrl){ log("  ✖ Pas de photo disponible pour " + sp.latin, "fail"); failCount++; await sleep(400); continue; }
+        var imageCandidates = pickImageCandidates(entry);
+        if(!imageCandidates.length){ log("  ✖ Pas de photo disponible pour " + sp.latin, "fail"); failCount++; await sleep(400); continue; }
+
+        log("  → téléchargement de la photo (" + imageCandidates.length + " taille(s) disponible(s))…");
+        var found = await fetchFirstWorkingImage(imageCandidates);
+        if(!found){ log("  ✖ Toutes les URLs d'image sont mortes pour " + sp.latin, "fail"); failCount++; await sleep(400); continue; }
 
         log("  → upload vers Supabase Storage…");
-        var hostedUrl = await uploadToSupabase(imageUrl, sp.id);
+        var hostedUrl = await uploadToSupabase(found.blob, sp.id);
 
         await saveRow(sp.id, hostedUrl, entry.id);
         log("  ✔ OK — " + hostedUrl, "ok");
